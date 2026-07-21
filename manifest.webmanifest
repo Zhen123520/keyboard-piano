@@ -1,0 +1,20 @@
+{
+  "name": "键盘钢琴",
+  "short_name": "键盘钢琴",
+  "description": "可完全离线使用的 26 键水晶键盘钢琴",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f9fb",
+  "theme_color": "#dffbf5",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
