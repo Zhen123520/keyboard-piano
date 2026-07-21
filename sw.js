@@ -1,4 +1,5 @@
-const SHELL_CACHE = "keyboard-piano-shell-v1";
+const SHELL_CACHE = "keyboard-piano-shell-v2";
+const AUDIO_CACHE = "keyboard-piano-audio-salamander-v3-48k-mp3-320-web-v2";
 const SHELL_FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -9,7 +10,9 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== SHELL_CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== SHELL_CACHE && key !== AUDIO_CACHE).map((key) => caches.delete(key)),
+      ))
       .then(() => self.clients.claim()),
   );
 });
@@ -33,10 +36,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Audio is persisted as compact binary data in IndexedDB by the page. Avoid
-  // duplicating roughly 280 MB in Cache Storage. Other assets are cached once
-  // used, so recognition remains available offline after its first load.
-  if (url.pathname.includes("/audio/")) return;
+  // The web build keeps audio in one Cache Storage collection. This avoids the
+  // IndexedDB request stalls seen on iOS while preserving the original MP3
+  // bytes without duplication or transcoding.
+  if (url.pathname.includes("/audio/")) {
+    event.respondWith(
+      caches.open(AUDIO_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        return cached || fetch(request);
+      }),
+    );
+    return;
+  }
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request).then((response) => {
       if (response.ok) {
