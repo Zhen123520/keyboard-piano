@@ -6271,6 +6271,85 @@ kbd {
     justify-content: flex-end;
     padding-bottom: max(9px, env(safe-area-inset-bottom));
   }
+
+  .app-shell.score-is-open,
+  .app-shell.score-is-open.score-proof-is-open {
+    height: 100svh;
+    min-height: 100svh;
+    gap: 0;
+    overflow: hidden;
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+
+  /* The score uses the genuinely empty area above the anchored piano. It is
+     removed from flex layout so opening it can never push the keyboard down. */
+  .app-shell.score-is-open .score-studio {
+    position: fixed;
+    z-index: 40;
+    top: var(--score-stage-top, 4px);
+    right: max(6px, env(safe-area-inset-right));
+    bottom: auto;
+    left: max(6px, env(safe-area-inset-left));
+    width: auto;
+    height: var(--score-stage-height, 52svh);
+    max-height: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .app-shell.score-is-open .score-dialog {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    flex-direction: column;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .app-shell.score-is-open .score-scroll {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .app-shell.score-is-open .score-performance {
+    min-height: 0;
+    flex: 1 1 auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .app-shell.score-is-open .score-visual {
+    min-height: 0;
+    max-height: none;
+    height: auto;
+  }
+}
+
+/* In light appearance score mode is a continuous white work surface, including
+   the area behind iOS browser chrome. */
+html.score-surface-open:not(.piano-dark-page),
+html.score-surface-open:not(.piano-dark-page) body {
+  --page-root-bg: #fff;
+  overflow: hidden !important;
+  background: #fff !important;
+}
+
+html.score-surface-open:not(.piano-dark-page) .app-shell {
+  background: #fff !important;
+}
+
+html.score-surface-open:not(.piano-dark-page) .ambient {
+  display: none !important;
+}
+
+html.score-surface-open:not(.piano-dark-page) .score-dialog,
+html.score-surface-open:not(.piano-dark-page) .score-header,
+html.score-surface-open:not(.piano-dark-page) .score-scroll {
+  background-color: #fff;
 }
 
 .score-studio.is-opening .score-dialog,
@@ -17023,6 +17102,50 @@ initScoreStudio();
     return result;
   };
 
+  const portraitScoreQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
+  let scoreStageGeometryFrame = 0;
+
+  function setScoreSurfaceOpen(open) {
+    const root = document.documentElement;
+    root.classList.toggle("score-surface-open", open);
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (!themeColor) return;
+    const dark = root.classList.contains("piano-dark-page");
+    themeColor.content = open && !dark ? "#ffffff" : (dark ? "#080a0f" : "#e8edf2");
+  }
+
+  function updatePortraitScoreStage() {
+    if (scoreStageGeometryFrame) cancelAnimationFrame(scoreStageGeometryFrame);
+    scoreStageGeometryFrame = requestAnimationFrame(() => {
+      scoreStageGeometryFrame = 0;
+      const studio = document.getElementById("score-studio");
+      const shell = document.querySelector(".app-shell");
+      const piano = document.querySelector(".piano-console");
+      if (!studio || !shell?.classList.contains("score-is-open") || !portraitScoreQuery.matches) {
+        studio?.style.removeProperty("--score-stage-top");
+        studio?.style.removeProperty("--score-stage-height");
+        return;
+      }
+
+      const pianoTop = piano?.getBoundingClientRect().top ?? innerHeight * 0.58;
+      const viewportHeight = window.visualViewport?.height || innerHeight;
+      const top = 4;
+      const gap = 6;
+      const available = Math.floor(Math.min(pianoTop - gap, viewportHeight - gap) - top);
+      studio.style.setProperty("--score-stage-top", `${top}px`);
+      studio.style.setProperty("--score-stage-height", `${Math.max(260, available)}px`);
+    });
+  }
+
+  const refreshOpenScoreGeometry = () => {
+    const shell = document.querySelector(".app-shell");
+    if (shell?.classList.contains("score-is-open")) updatePortraitScoreStage();
+  };
+  window.addEventListener("resize", refreshOpenScoreGeometry, { passive: true });
+  window.addEventListener("orientationchange", refreshOpenScoreGeometry, { passive: true });
+  window.visualViewport?.addEventListener("resize", refreshOpenScoreGeometry, { passive: true });
+  window.visualViewport?.addEventListener("scroll", refreshOpenScoreGeometry, { passive: true });
+
   // Keep the piano on its resting anchor while the score opens. The former
   // shared-element animation cloned the complete score DOM and animated the
   // piano's geometry; on iOS that caused both a vertical jump and dropped
@@ -17040,6 +17163,8 @@ initScoreStudio();
     studio.classList.add("is-opening");
     studio.hidden = false;
     shell?.classList.add("score-is-open");
+    setScoreSurfaceOpen(true);
+    updatePortraitScoreStage();
     trigger.setAttribute("aria-expanded", "true");
     trigger.setAttribute("aria-label", "收起识谱界面");
 
@@ -17111,6 +17236,9 @@ initScoreStudio();
       onFinish: () => {
         studio.hidden = true;
         shell?.classList.remove("score-is-open", "score-proof-is-open");
+        setScoreSurfaceOpen(false);
+        studio.style.removeProperty("--score-stage-top");
+        studio.style.removeProperty("--score-stage-height");
         try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
         scorePersistUiState();
       },
@@ -17781,11 +17909,16 @@ initScoreStudio();
 <script id="piano-web-runtime">
 (() => {
   const AUDIO_ROOT = "./audio/";
-  const AUDIO_VERSION = "salamander-v3-48k-mp3-320-web-v1";
+  const AUDIO_VERSION = "salamander-v3-48k-mp3-320-web-v2";
   const AUDIO_READY_KEY = `@web-library:${AUDIO_VERSION}`;
+  const AUDIO_CACHE_PREFIX = "keyboard-piano-audio-";
+  const AUDIO_CACHE_NAME = `${AUDIO_CACHE_PREFIX}${AUDIO_VERSION}`;
+  const AUDIO_READY_URL = new URL(`./.offline-audio-ready-${AUDIO_VERSION}`, document.baseURI).href;
   const RECOGNITION_URL = "./recognition-assets.json";
   const audioPromises = new Map();
   let offlinePreparationPromise = null;
+  let offlineRetryTimer = null;
+  let webAudioCachePromise = null;
 
   function asArrayBuffer(value) {
     if (value instanceof ArrayBuffer) return value;
@@ -17819,7 +17952,35 @@ initScoreStudio();
     return [...new Set([...priority, ...attackFiles])];
   }
 
-  async function writeAudioCache(key, value) {
+  function withTimeout(promise, milliseconds, message) {
+    return new Promise((resolve, reject) => {
+      const timer = window.setTimeout(() => reject(new Error(message)), milliseconds);
+      Promise.resolve(promise).then(
+        (value) => { window.clearTimeout(timer); resolve(value); },
+        (error) => { window.clearTimeout(timer); reject(error); },
+      );
+    });
+  }
+
+  function canUseWebAudioCache() {
+    return location.protocol !== "file:" && "caches" in window;
+  }
+
+  function openWebAudioCache() {
+    if (!canUseWebAudioCache()) return Promise.resolve(null);
+    if (webAudioCachePromise) return webAudioCachePromise;
+    webAudioCachePromise = withTimeout(
+      caches.open(AUDIO_CACHE_NAME),
+      4000,
+      "打开离线音色缓存超时",
+    ).catch((error) => {
+      webAudioCachePromise = null;
+      throw error;
+    });
+    return webAudioCachePromise;
+  }
+
+  async function writeLegacyAudioCache(key, value) {
     const database = await pianoOpenAudioDatabase();
     await new Promise((resolve, reject) => {
       const transaction = database.transaction(PIANO_AUDIO_STORE, "readwrite");
@@ -17834,25 +17995,102 @@ initScoreStudio();
     return new URL(`${AUDIO_ROOT}${encodeURIComponent(file)}.mp3`, document.baseURI).href;
   }
 
+  async function readCachedAudio(file) {
+    if (canUseWebAudioCache()) {
+      const cache = await openWebAudioCache();
+      const response = await withTimeout(
+        cache.match(audioUrl(file)),
+        4000,
+        "读取离线音色缓存超时",
+      );
+      return response ? response.arrayBuffer() : null;
+    }
+    try {
+      return asArrayBuffer(await withTimeout(
+        pianoAudioCacheRead(file),
+        2500,
+        "读取旧版音色缓存超时",
+      ));
+    } catch {
+      return null;
+    }
+  }
+
   async function fetchAndStoreAudio(file) {
-    const response = await fetch(audioUrl(file), { cache: "force-cache" });
-    if (!response.ok) throw new Error(`无法读取琴音 ${file}（${response.status}）`);
-    const bytes = await response.arrayBuffer();
-    await writeAudioCache(file, bytes.slice(0));
-    return bytes;
+    const url = audioUrl(file);
+    let lastError = null;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error(`无法读取琴音 ${file}（${response.status}）`);
+        const copy = response.clone();
+        const bytes = await response.arrayBuffer();
+        if (canUseWebAudioCache()) {
+          const cache = await openWebAudioCache();
+          await withTimeout(cache.put(url, copy), 15000, "保存离线琴音超时");
+        } else {
+          await withTimeout(
+            writeLegacyAudioCache(file, bytes.slice(0)),
+            5000,
+            "保存旧版离线琴音超时",
+          );
+        }
+        return bytes;
+      } catch (error) {
+        lastError = error;
+        if (attempt < 3) await new Promise((resolve) => window.setTimeout(resolve, attempt * 700));
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+    throw lastError || new Error(`无法读取琴音 ${file}`);
   }
 
   async function ensureAudioFile(file) {
     if (audioPromises.has(file)) return audioPromises.get(file);
     const promise = (async () => {
       try {
-        const cached = asArrayBuffer(await pianoAudioCacheRead(file));
+        const cached = asArrayBuffer(await readCachedAudio(file));
         if (cached) return cached;
       } catch {}
       return fetchAndStoreAudio(file);
     })().finally(() => audioPromises.delete(file));
     audioPromises.set(file, promise);
     return promise;
+  }
+
+  async function completeAudioLibraryIsCached() {
+    if (canUseWebAudioCache()) {
+      const cache = await openWebAudioCache();
+      const marker = await withTimeout(cache.match(AUDIO_READY_URL), 4000, "检查离线琴音状态超时");
+      return Boolean(marker);
+    }
+    return await withTimeout(
+      pianoAudioCacheRead(AUDIO_READY_KEY),
+      2500,
+      "检查旧版离线琴音状态超时",
+    ) === AUDIO_VERSION;
+  }
+
+  async function markCompleteAudioLibraryCached() {
+    if (canUseWebAudioCache()) {
+      const cache = await openWebAudioCache();
+      await withTimeout(
+        cache.put(AUDIO_READY_URL, new Response(AUDIO_VERSION, {
+          headers: { "content-type": "text/plain; charset=utf-8" },
+        })),
+        5000,
+        "保存离线琴音完成状态超时",
+      );
+      return;
+    }
+    await withTimeout(
+      writeLegacyAudioCache(AUDIO_READY_KEY, AUDIO_VERSION),
+      5000,
+      "保存旧版离线琴音完成状态超时",
+    );
   }
 
   // Replace the Base64 pack loader used by the downloadable single-file build.
@@ -17875,7 +18113,7 @@ initScoreStudio();
     if (offlinePreparationPromise) return offlinePreparationPromise;
     offlinePreparationPromise = (async () => {
       try {
-        if (await pianoAudioCacheRead(AUDIO_READY_KEY) === AUDIO_VERSION) {
+        if (await completeAudioLibraryIsCached()) {
           pianoSetBrandStatus("ready", "完整离线钢琴音色已就绪");
           pianoSetCacheProgress("完整离线钢琴音色已就绪", 1, true);
           return;
@@ -17886,7 +18124,7 @@ initScoreStudio();
       const files = allPianoFiles();
       let cursor = 0;
       let completed = 0;
-      updateOfflineProgress("正在后台准备完整离线琴音（首次约 280 MB）", 0, files.length);
+      updateOfflineProgress("正在连接并缓存完整离线琴音（首次约 280 MB）", 0, files.length);
 
       const worker = async () => {
         while (cursor < files.length) {
@@ -17894,21 +18132,26 @@ initScoreStudio();
           cursor += 1;
           await ensureAudioFile(files[index]);
           completed += 1;
-          if (completed === files.length || completed % 3 === 0) {
-            updateOfflineProgress("正在后台准备完整离线琴音", completed, files.length);
-          }
+          updateOfflineProgress("正在后台准备完整离线琴音", completed, files.length);
         }
       };
 
       try {
         await Promise.all([worker(), worker(), worker()]);
-        await writeAudioCache(AUDIO_READY_KEY, AUDIO_VERSION);
+        await markCompleteAudioLibraryCached();
+        if (offlineRetryTimer !== null) window.clearTimeout(offlineRetryTimer);
+        offlineRetryTimer = null;
         pianoSetCacheProgress("完整离线钢琴音色已就绪", 1);
         pianoSetBrandStatus("ready", "完整离线钢琴音色已就绪");
         window.setTimeout(() => pianoSetCacheProgress("完整离线钢琴音色已就绪", 1, true), 1400);
       } catch (error) {
-        pianoSetBrandStatus("fallback", "离线音色尚未完整，联网时会自动续传");
-        pianoSetCacheProgress("离线音色暂停，联网后自动续传", completed / files.length);
+        pianoSetBrandStatus("fallback", "离线音色暂未完整，稍后会自动续传");
+        updateOfflineProgress("离线音色暂停，12 秒后自动续传", completed, files.length);
+        if (offlineRetryTimer !== null) window.clearTimeout(offlineRetryTimer);
+        offlineRetryTimer = window.setTimeout(() => {
+          offlineRetryTimer = null;
+          if (navigator.onLine !== false) prepareCompleteOfflineLibrary().catch(() => {});
+        }, 12000);
         throw error;
       }
     })().finally(() => {
@@ -17940,6 +18183,9 @@ initScoreStudio();
     prepareCompleteOfflineLibrary().catch(() => {});
   };
   window.addEventListener("online", startOfflinePreparation, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && navigator.onLine !== false) startOfflinePreparation();
+  }, { passive: true });
   window.setTimeout(() => {
     if (navigator.onLine !== false) startOfflinePreparation();
   }, 1500);
