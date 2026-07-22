@@ -6517,6 +6517,161 @@ html.piano-ios-fast-theme .keyboard-well::after {
   display: none !important;
 }
 </style>
+<style id="score-ui-stability-fixes">
+/* Keep the real score trigger painted for the whole shared-element hand-off.
+   A frozen proxy sits above the growing sheet, so neither the real button nor
+   its glass material disappears and then flashes back at the end. */
+.score-open-control.is-launching {
+  opacity: 1 !important;
+}
+
+.score-transition-trigger {
+  opacity: 1 !important;
+  transform: none !important;
+  -webkit-animation: none !important;
+  animation: none !important;
+}
+
+.score-transition-layer {
+  inset: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+  contain: none !important;
+}
+
+/* The score transition already carries an opaque visual snapshot. Background
+   sampling adds substantial compositor work on mobile Safari without adding
+   useful depth here, and can invalidate the piano layer in dark mode. Keep all
+   affected surfaces on their existing gradients and shadows, but remove blur. */
+.piano-console,
+.keyboard-well,
+.volume-control,
+.keyboard-key-control,
+.transpose-control,
+.theme-control,
+.score-open-control,
+.score-dialog,
+.score-header,
+.score-inline-button,
+.score-close-button,
+.score-play-button,
+.score-stop-button,
+.score-transition-shell > .score-dialog {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.score-surface-open .ambient {
+  display: block !important;
+}
+
+/* The live score is never transformed; only its fixed proxy animates. Avoid a
+   second promoted layer so the proxy can hand off to an already-painted score
+   and piano instead of producing a blank compositor frame. */
+.score-studio.is-opening .score-dialog,
+.score-studio.is-closing .score-dialog {
+  backface-visibility: visible !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* One bounded vertical scroller is used in every orientation. The performance
+   grid keeps its natural height, so opening the proofing area extends the
+   scroller instead of crushing the score to a single row. */
+.app-shell.score-is-open .score-dialog {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.app-shell.score-is-open .score-scroll {
+  display: block;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.app-shell.score-is-open .score-performance {
+  min-height: max-content;
+  flex: 0 0 auto;
+  grid-template-rows: auto auto auto auto;
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .app-shell.score-is-open .score-visual {
+    min-height: clamp(240px, 32svh, 340px);
+    height: clamp(240px, 32svh, 340px);
+    max-height: clamp(240px, 32svh, 340px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 760px) {
+  .app-shell.score-is-open .score-visual {
+    min-height: 176px;
+    height: 176px;
+    max-height: 176px;
+  }
+}
+
+/* Touch browsers can retain :hover after a tap. Restore the settled materials
+   on coarse pointers so every control keeps the same appearance throughout
+   the score hand-off; real mouse hover remains unchanged. */
+@media (hover: none), (pointer: coarse) {
+  .theme-control:hover,
+  .transpose-step:hover,
+  .transpose-value:hover,
+  .score-open-control:hover,
+  .score-inline-button:hover:not(:disabled),
+  .score-close-button:hover:not(:disabled),
+  .score-play-button:hover:not(:disabled),
+  .score-stop-button:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.56);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(218, 228, 240, 0.26));
+    filter: none;
+  }
+
+  .score-close-button:hover:not(:disabled) {
+    color: #65707c;
+  }
+
+  .score-inline-button.score-primary-button:hover:not(:disabled),
+  .score-play-button:hover:not(:disabled) {
+    border-color: rgba(122, 104, 242, 0.34);
+    background:
+      linear-gradient(180deg, rgba(133, 113, 255, 0.34), rgba(69, 53, 176, 0.2));
+  }
+
+  .piano-dark-page .theme-control:hover,
+  .piano-dark-page .transpose-step:hover:not(:disabled),
+  .piano-dark-page .transpose-value:hover:not(:disabled),
+  .piano-dark-page .score-open-control:hover,
+  .piano-dark-page .score-inline-button:hover:not(:disabled),
+  .piano-dark-page .score-close-button:hover:not(:disabled),
+  .piano-dark-page .score-play-button:hover:not(:disabled),
+  .piano-dark-page .score-stop-button:hover:not(:disabled) {
+    border-color: rgba(220, 231, 252, 0.17);
+    background:
+      linear-gradient(180deg, rgba(42, 53, 72, 0.46), rgba(2, 6, 13, 0.4));
+  }
+
+  .piano-dark-page .score-inline-button.score-primary-button:hover:not(:disabled),
+  .piano-dark-page .score-play-button:hover:not(:disabled) {
+    border-color: rgba(159, 143, 255, 0.3);
+    color: #f3f0ff;
+    background:
+      linear-gradient(180deg, rgba(111, 91, 236, 0.3), rgba(21, 15, 58, 0.4));
+  }
+}
+</style>
 <style id="piano-clear-keycaps-v2">
 /* Final keyboard deck cleanup. The former repeating 7.5% gradient was the
    pair of vertical lines visible beside the short bottom row. */
@@ -16436,9 +16591,21 @@ function scoreFinishStudioAnimation(transition) {
     animation.oncancel = null;
     try { animation.cancel(); } catch {}
   });
-  transition.layer?.remove();
+  /* Put the underlying layout into its final state before removing the fixed
+     proxy. WebKit can otherwise retire the proxy layer before it has painted
+     the real score/piano, producing one completely blank frame. */
+  if (transition.direction === "closing") transition.onFinish?.();
   scoreResetStudioAnimationStyles(transition.studio, transition.trigger);
-  transition.onFinish?.();
+  const dialog = transition.studio?.querySelector(".score-dialog");
+  if (dialog && transition.direction !== "closing") {
+    const inlineDisplay = dialog.style.display;
+    dialog.style.display = "none";
+    dialog.getBoundingClientRect();
+    dialog.style.display = inlineDisplay;
+  }
+  dialog?.getBoundingClientRect();
+  transition.layer?.remove();
+  if (transition.direction !== "closing") transition.onFinish?.();
 }
 
 function scoreCancelStudioAnimation(studio, trigger) {
@@ -17272,6 +17439,9 @@ initScoreStudio();
       || document.documentElement.classList.contains("score-surface-dark")
     );
     visual.layer.classList.toggle("theme-dark", dark);
+    visual.layer.classList.toggle("piano-dark-page", dark);
+    visual.layer.classList.toggle("piano-light-page", !dark);
+    visual.layer.classList.toggle("score-surface-dark", dark);
     visual.layer.classList.toggle("score-transition-light", !dark);
     return visual;
   }
