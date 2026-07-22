@@ -6542,6 +6542,29 @@ html.piano-ios-fast-theme .keyboard-well::after {
   contain: none !important;
 }
 
+/* After the first close, keep the already-laid-out score parked outside the
+   viewport. The hidden attribute still owns application/accessibility state;
+   this visual cache only prevents every reopen from laying out thousands of
+   notation glyphs again. content-visibility lets supporting WebKit versions
+   retain that layout without painting or traversing the parked subtree. */
+.score-studio[hidden].score-layout-parked {
+  display: block !important;
+  position: fixed !important;
+  z-index: -1 !important;
+  inset: 0 auto auto -10000px !important;
+  width: var(--score-park-width, 1px) !important;
+  height: var(--score-park-height, 1px) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  contain: strict;
+  content-visibility: hidden;
+}
+
 /* The score transition already carries an opaque visual snapshot. Background
    sampling adds substantial compositor work on mobile Safari without adding
    useful depth here, and can invalidate the piano layer in dark mode. Keep all
@@ -6578,18 +6601,35 @@ html.score-surface-open .ambient {
   will-change: auto !important;
 }
 
+/* Hide the live sheet as one composited surface. visibility is inherited and
+   makes WebKit restyle every nested note; opacity changes only this root. */
+.score-studio.is-transitioning .score-dialog {
+  visibility: visible !important;
+  opacity: 0 !important;
+}
+
 /* One bounded vertical scroller is used in every orientation. The normal
    performance grid fills the stage so its transport stays bottom-anchored;
    proofing switches to natural height below without creating a second scroll. */
 .app-shell.score-is-open .score-dialog,
-.score-transition-shell > .score-dialog {
+.score-transition-shell > .score-dialog,
+.score-studio.score-layout-parked .score-dialog {
   display: flex;
   min-height: 0;
   flex-direction: column;
 }
 
+.score-studio.score-layout-parked .score-dialog {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  overflow: hidden;
+}
+
 .app-shell.score-is-open .score-scroll,
-.score-transition-shell .score-scroll {
+.score-transition-shell .score-scroll,
+.score-studio.score-layout-parked .score-scroll {
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
@@ -6603,17 +6643,32 @@ html.score-surface-open .ambient {
 }
 
 .app-shell.score-is-open .score-performance,
-.score-transition-shell .score-performance {
+.score-transition-shell .score-performance,
+.score-studio.score-layout-parked .score-performance {
   min-height: 0;
   flex: 1 1 auto;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .app-shell.score-is-open .score-visual,
-.score-transition-shell .score-visual {
+.score-transition-shell .score-visual,
+.score-studio.score-layout-parked .score-visual {
   min-height: 0;
   height: auto;
   max-height: none;
+  contain: layout paint style;
+}
+
+/* A long imported score can contain thousands of nested glyph nodes. The
+   transition snapshot is intentionally capped, and none of its children need
+   independent interpolation while the containing sheet is being composited. */
+.score-transition-shell .score-transition-visual-preview {
+  scroll-behavior: auto !important;
+  contain: layout paint style;
+}
+
+.score-transition-shell .score-transition-visual-preview .score-note-chip {
+  transition: none !important;
 }
 
 /* Once proofing is explicitly opened, the performance block switches to its
@@ -9154,6 +9209,9 @@ const SCORE_STATE = {
   liveStartSeconds: 0,
   liveNextEventIndex: 0,
   currentVisualIndex: -1,
+  visualEventNodes: new Map(),
+  activeVisualChips: new Set(),
+  deferredVisualIndices: null,
   lastVisualFrame: 0,
   sampleWarmupId: 0,
   meter: null,
@@ -9172,6 +9230,8 @@ const SCORE_STATE = {
   activeKeyboardEventSignatures: new Map(),
   lastMediaPositionUpdate: 0,
   studioAnimation: null,
+  parkedStudioRect: null,
+  parkedDialogAppearance: null,
 };
 
 let SCORE_DATABASE_PROMISE = null;
@@ -14732,6 +14792,14 @@ function scoreRefreshSequence() {
     const description = scoreEventDescription(sequenceEvent);
     return `<button class="score-note-chip" type="button" data-score-event="${item.eventIndex}" aria-label="${scoreEscapeHtml(description)}" title="${scoreEscapeHtml(description)}">${scoreJianpuMarkup(item.text, sequenceEvent)}</button>`;
   }).join("") : '<span class="score-visual-empty">识别或输入简谱后显示</span>';
+  const visualEventNodes = new Map();
+  visual.querySelectorAll(".score-note-chip[data-score-event]").forEach((chip) => {
+    const eventIndex = Number(chip.dataset.scoreEvent);
+    if (Number.isFinite(eventIndex)) visualEventNodes.set(eventIndex, chip);
+  });
+  SCORE_STATE.visualEventNodes = visualEventNodes;
+  SCORE_STATE.activeVisualChips = new Set();
+  SCORE_STATE.currentVisualIndex = null;
   const soundedNotes = parsed.events.filter((event) => event.midi !== null && !event.tiedFromPrevious).length;
   const audit = scoreAuditMeasures(
     parsed.measures || parsed.measureDurations,
@@ -16062,22 +16130,44 @@ function scoreHighlightEvent(index) {
 function scoreHighlightEvents(indices) {
   const normalized = [...new Set(indices || [])].filter((index) => Number.isFinite(index));
   const signature = normalized.join(",");
+  const studio = document.getElementById("score-studio");
+  if (!studio || studio.hidden || studio.classList.contains("is-transitioning")) {
+    // Playback continues while the score is closed, but walking and scrolling
+    // a long hidden notation tree only steals frames from the keyboard and the
+    // shared-element transition. Apply the latest position once it is visible.
+    SCORE_STATE.deferredVisualIndices = normalized;
+    return;
+  }
   if (SCORE_STATE.currentVisualIndex === signature) return;
-  document.querySelectorAll(".score-note-chip.is-playing").forEach((chip) => chip.classList.remove("is-playing"));
+  const visual = document.getElementById("score-visual");
+  for (const chip of SCORE_STATE.activeVisualChips || []) chip.classList.remove("is-playing");
   SCORE_STATE.currentVisualIndex = signature;
+  SCORE_STATE.deferredVisualIndices = null;
+  const nextActiveChips = new Set();
   let first = null;
   for (const index of normalized) {
-    const current = document.querySelector(`.score-note-chip[data-score-event="${index}"]`);
+    const current = SCORE_STATE.visualEventNodes?.get(index)
+      || visual?.querySelector(`.score-note-chip[data-score-event="${index}"]`);
     current?.classList.add("is-playing");
+    if (current) nextActiveChips.add(current);
     if (!first) first = current;
   }
+  SCORE_STATE.activeVisualChips = nextActiveChips;
   if (first) {
-    const viewport = document.getElementById("score-visual")?.getBoundingClientRect();
+    const viewport = visual?.getBoundingClientRect();
     const current = first.getBoundingClientRect();
     if (viewport && (current.top < viewport.top + 3 || current.bottom > viewport.bottom - 3)) {
       first.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
     }
   }
+}
+
+function scoreFlushDeferredVisualHighlight() {
+  if (!Array.isArray(SCORE_STATE.deferredVisualIndices)) return;
+  const deferred = SCORE_STATE.deferredVisualIndices;
+  SCORE_STATE.deferredVisualIndices = null;
+  SCORE_STATE.currentVisualIndex = null;
+  scoreHighlightEvents(deferred);
 }
 
 function scoreKeyboardKeyForEvent(event) {
@@ -16418,10 +16508,16 @@ function scoreCssKeyframe(frame) {
   return declarations.join(";");
 }
 
-// Some iOS file viewers expose enough JavaScript to toggle the interface but
-// omit Web Animations. CSS keyframes are supported by much older WKWebViews,
-// so the score transition deliberately uses this compatibility runner.
+// Current GitHub/Safari builds can keep these transforms entirely on the
+// compositor through Web Animations. Injecting a new @keyframes stylesheet for
+// every element forces a full style recalculation across long imported scores,
+// so CSS animation remains only as a compatibility path for older viewers.
 function scoreAnimateElement(element, keyframes, options = {}) {
+  if (typeof element?.animate === "function") {
+    try {
+      return element.animate(keyframes, options);
+    } catch {}
+  }
   const name = `score-shared-${++SCORE_CSS_ANIMATION_ID}`;
   const lastIndex = Math.max(1, keyframes.length - 1);
   const rules = keyframes.map((frame, index) => {
@@ -16502,19 +16598,78 @@ function scoreScaledRadius(radius, scaleX, scaleY) {
 }
 
 function scoreCloneDialogSnapshot(dialog) {
-  const clone = dialog.cloneNode(true);
-  const sourceControls = dialog.querySelectorAll("input, textarea, select, progress, details");
-  const cloneControls = clone.querySelectorAll("input, textarea, select, progress, details");
-  sourceControls.forEach((source, index) => {
-    const copy = cloneControls[index];
-    if (!copy) return;
+  const directChild = (parent, className) => {
+    for (const child of parent?.children || []) {
+      if (child.classList?.contains(className)) return child;
+    }
+    return null;
+  };
+  const clone = dialog.cloneNode(false);
+  const sourceHeader = directChild(dialog, "score-header");
+  const sourceProgress = directChild(dialog, "score-progress-wrap");
+  const sourceScroll = directChild(dialog, "score-scroll");
+  const sourcePerformance = directChild(sourceScroll, "score-performance");
+  const sourceHead = directChild(sourcePerformance, "score-performance-head");
+  const sourceVisual = directChild(sourcePerformance, "score-visual");
+  const sourceTransport = directChild(sourcePerformance, "score-transport");
+  const sourceWorkbench = directChild(sourcePerformance, "score-workbench");
+
+  if (sourceHeader) clone.append(sourceHeader.cloneNode(true));
+  if (sourceProgress) clone.append(sourceProgress.cloneNode(true));
+
+  if (sourceScroll && sourcePerformance) {
+    const scroll = sourceScroll.cloneNode(false);
+    const performance = sourcePerformance.cloneNode(false);
+    if (sourceHead) performance.append(sourceHead.cloneNode(true));
+
+    if (sourceVisual) {
+      const visual = sourceVisual.cloneNode(false);
+      visual.classList.add("score-transition-visual-preview");
+      const total = sourceVisual.children.length;
+      const limit = Math.min(72, total);
+      const deferredIndex = SCORE_STATE.deferredVisualIndices?.[0];
+      const activeIndex = Number(String(SCORE_STATE.currentVisualIndex ?? "").split(",")[0]);
+      const anchorIndex = Number.isFinite(deferredIndex) ? deferredIndex : activeIndex;
+      let child = SCORE_STATE.visualEventNodes?.get(anchorIndex) || sourceVisual.firstElementChild;
+      // Reading scrollHeight here would synchronously lay out every note in a
+      // long score. Walk a fixed sibling window around the active event instead
+      // so snapshot cost remains bounded even while playback is advancing.
+      for (let index = 0; child && index < Math.floor(limit / 2); index += 1) {
+        if (!child.previousElementSibling) break;
+        child = child.previousElementSibling;
+      }
+      for (let index = 0; child && index < limit; index += 1) {
+        visual.append(child.cloneNode(true));
+        child = child.nextElementSibling;
+      }
+      performance.append(visual);
+    }
+
+    if (sourceTransport) performance.append(sourceTransport.cloneNode(true));
+    if (sourceWorkbench) {
+      const workbench = sourceWorkbench.cloneNode(false);
+      const summary = sourceWorkbench.querySelector(":scope > summary");
+      if (summary) workbench.append(summary.cloneNode(true));
+      workbench.open = false;
+      performance.append(workbench);
+    }
+    scroll.append(performance);
+    clone.append(scroll);
+  }
+
+  // Only the compact snapshot is inspected here. Matching by id avoids a
+  // second traversal of the original long score while preserving live range,
+  // select and progress values that cloneNode() does not consistently copy.
+  clone.querySelectorAll("[id]").forEach((copy) => {
+    const source = document.getElementById(copy.id);
+    if (!source) return;
     try {
       if ("value" in source) copy.value = source.value;
       if ("checked" in source) copy.checked = source.checked;
       if ("selectedIndex" in source) copy.selectedIndex = source.selectedIndex;
-      if (source.tagName === "DETAILS") copy.open = source.open;
     } catch {}
   });
+  clone.querySelector(".score-workbench")?.removeAttribute("open");
   clone.removeAttribute("aria-labelledby");
   clone.setAttribute("aria-hidden", "true");
   clone.tabIndex = -1;
@@ -16531,14 +16686,40 @@ function scoreCloneDialogSnapshot(dialog) {
 
 function scoreDialogAppearance(dialog) {
   const style = getComputedStyle(dialog);
+  const radius = Number.parseFloat(style.borderTopLeftRadius);
   return {
-    radius: scoreCornerRadius(dialog),
+    radius: Number.isFinite(radius) ? radius : 0,
     boxShadow: style.boxShadow,
     backgroundColor: style.backgroundColor,
+    fontFamily: style.fontFamily,
   };
 }
 
-function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapshot = null, appearance = null) {
+function scoreTriggerAppearance(trigger) {
+  const style = getComputedStyle(trigger);
+  const radius = Number.parseFloat(style.borderTopLeftRadius);
+  return {
+    radius: Number.isFinite(radius) ? radius : 0,
+    color: style.color,
+    background: style.background,
+    borderColor: style.borderColor,
+    borderStyle: style.borderStyle,
+    borderWidth: style.borderWidth,
+    boxShadow: style.boxShadow,
+    webkitBackdropFilter: style.webkitBackdropFilter,
+    backdropFilter: style.backdropFilter,
+  };
+}
+
+function scoreCreateTransitionVisual(
+  dialog,
+  rect,
+  trigger,
+  triggerRect,
+  snapshot = null,
+  appearance = null,
+  triggerAppearance = null,
+) {
   const layer = document.createElement("div");
   layer.className = "score-transition-layer";
   layer.setAttribute("aria-hidden", "true");
@@ -16546,12 +16727,12 @@ function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapsho
   // symbol glyphs in their monochrome text presentation on iOS. Copy that
   // family explicitly so arrows and playback controls never fall back to the
   // coloured Apple Emoji font during the hand-off.
-  layer.style.fontFamily = getComputedStyle(dialog).fontFamily;
+  const visualStyle = appearance || scoreDialogAppearance(dialog);
+  layer.style.fontFamily = visualStyle.fontFamily;
   layer.style.fontVariantEmoji = "text";
 
   const shell = document.createElement("div");
   shell.className = "score-transition-shell";
-  const visualStyle = appearance || scoreDialogAppearance(dialog);
   Object.assign(shell.style, {
     left: `${rect.left}px`,
     top: `${rect.top}px`,
@@ -16567,7 +16748,7 @@ function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapsho
   // The transition clone lives directly under <body>, outside the console's
   // theme/hover ancestry. Freeze the source button's computed glass material
   // so closing never flashes an older theme colour or drops its current glow.
-  const triggerStyle = getComputedStyle(trigger);
+  const triggerStyle = triggerAppearance || scoreTriggerAppearance(trigger);
   const triggerGhost = trigger.cloneNode(true);
   triggerGhost.id = "";
   triggerGhost.classList.remove("is-launching");
@@ -16596,36 +16777,124 @@ function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapsho
   return { layer, shell, dialogSnapshot, triggerGhost, appearance: visualStyle };
 }
 
-function scoreResetStudioAnimationStyles(studio, trigger) {
+function scoreResetStudioAnimationStyles(studio, trigger, preservedLayer = null) {
   studio?.classList.remove("is-opening", "is-closing", "is-transitioning");
   trigger?.classList.remove("is-launching");
   document.querySelector(".piano-console")?.classList.remove("is-score-transitioning");
-  document.querySelectorAll(".score-transition-layer, .score-launch-surface, .score-launch-trigger").forEach((node) => node.remove());
+  const transientClasses = new Set([
+    "score-transition-layer",
+    "score-launch-surface",
+    "score-launch-trigger",
+  ]);
+  for (const node of [...(document.body?.children || [])]) {
+    if (node !== preservedLayer
+      && [...node.classList].some((className) => transientClasses.has(className))) node.remove();
+  }
+}
+
+function scoreParkStudioLayout(studio, rect, appearance = null) {
+  if (!studio || !rect) return;
+  const viewport = window.visualViewport;
+  SCORE_STATE.parkedStudioRect = {
+    ...rect,
+    viewportWidth: viewport?.width || window.innerWidth,
+    viewportHeight: viewport?.height || window.innerHeight,
+  };
+  if (appearance) {
+    const shell = document.querySelector(".app-shell");
+    SCORE_STATE.parkedDialogAppearance = {
+      appearance: { ...appearance },
+      dark: Boolean(
+        shell?.classList.contains("theme-dark")
+        || shell?.classList.contains("piano-dark-page")
+        || document.documentElement.classList.contains("piano-dark-page")
+      ),
+    };
+  }
+  studio.style.setProperty("--score-park-width", `${rect.width}px`);
+  studio.style.setProperty("--score-park-height", `${rect.height}px`);
+  studio.classList.add("score-layout-parked");
+  studio.setAttribute("aria-hidden", "true");
+}
+
+function scoreUnparkStudioLayout(studio) {
+  if (!studio) return;
+  studio.classList.remove("score-layout-parked");
+  studio.removeAttribute("aria-hidden");
+}
+
+function scoreCachedParkedStudioRect() {
+  const cached = SCORE_STATE.parkedStudioRect;
+  if (!cached) return null;
+  const viewport = window.visualViewport;
+  const width = viewport?.width || window.innerWidth;
+  const height = viewport?.height || window.innerHeight;
+  if (Math.abs(width - cached.viewportWidth) > 2 || Math.abs(height - cached.viewportHeight) > 2) {
+    return null;
+  }
+  return {
+    left: cached.left,
+    top: cached.top,
+    right: cached.right,
+    bottom: cached.bottom,
+    width: cached.width,
+    height: cached.height,
+  };
+}
+
+function scoreCachedParkedDialogAppearance() {
+  const cached = SCORE_STATE.parkedDialogAppearance;
+  if (!cached) return null;
+  const shell = document.querySelector(".app-shell");
+  const dark = Boolean(
+    shell?.classList.contains("theme-dark")
+    || shell?.classList.contains("piano-dark-page")
+    || document.documentElement.classList.contains("piano-dark-page")
+  );
+  return cached.dark === dark ? { ...cached.appearance } : null;
 }
 
 function scoreFinishStudioAnimation(transition) {
   if (!transition || SCORE_STATE.studioAnimation !== transition) return;
   SCORE_STATE.studioAnimation = null;
+  const nativeHandoff = Boolean(transition.layer)
+    && transition.animations.length > 0
+    && transition.animations.every((animation) => typeof animation?.playState === "string");
   transition.animations.forEach((animation) => {
     animation.onfinish = null;
     animation.oncancel = null;
-    try { animation.cancel(); } catch {}
+    if (!nativeHandoff) {
+      try { animation.cancel(); } catch {}
+    }
   });
-  /* Put the underlying layout into its final state before removing the fixed
-     proxy. WebKit can otherwise retire the proxy layer before it has painted
-     the real score/piano, producing one completely blank frame. */
   if (transition.direction === "closing") transition.onFinish?.();
-  scoreResetStudioAnimationStyles(transition.studio, transition.trigger);
-  const dialog = transition.studio?.querySelector(".score-dialog");
-  if (dialog && transition.direction !== "closing") {
-    const inlineDisplay = dialog.style.display;
-    dialog.style.display = "none";
-    dialog.getBoundingClientRect();
-    dialog.style.display = inlineDisplay;
+  scoreResetStudioAnimationStyles(
+    transition.studio,
+    transition.trigger,
+    nativeHandoff ? transition.layer : null,
+  );
+  if (transition.direction !== "closing") {
+    transition.onFinish?.();
   }
-  dialog?.getBoundingClientRect();
-  transition.layer?.remove();
-  if (transition.direction !== "closing") transition.onFinish?.();
+
+  if (!nativeHandoff) {
+    transition.layer?.remove();
+    if (transition.direction !== "closing") scoreFlushDeferredVisualHighlight();
+    return;
+  }
+
+  /* Keep the finished proxy for two paint opportunities. The real long score
+     can lay out and receive its latest playback highlight behind that opaque
+     frame, then the proxy is removed without a synchronous geometry flush. */
+  window.requestAnimationFrame(() => {
+    if (transition.direction !== "closing") scoreFlushDeferredVisualHighlight();
+    window.requestAnimationFrame(() => {
+      transition.layer?.remove();
+      transition.animations.forEach((animation) => {
+        try { animation.cancel(); } catch {}
+      });
+    });
+  });
 }
 
 function scoreCancelStudioAnimation(studio, trigger) {
@@ -16652,12 +16921,14 @@ function scoreOpenStudio() {
   if (SCORE_STATE.studioAnimation) return;
 
   const triggerRect = scoreRectSnapshot(trigger);
+  const triggerAppearance = scoreTriggerAppearance(trigger);
   const pianoBefore = scoreRectSnapshot(piano);
   studio.classList.add("is-opening", "is-transitioning");
   piano.classList.add("is-score-transitioning");
   trigger.classList.add("is-launching");
-  studio.hidden = false;
   shell?.classList.add("score-is-open");
+  studio.hidden = false;
+  scoreUnparkStudioLayout(studio);
   trigger.setAttribute("aria-expanded", "true");
   trigger.setAttribute("aria-label", "收起识谱界面");
   if (shell) shell.scrollTop = 0;
@@ -16668,22 +16939,26 @@ function scoreOpenStudio() {
   if (!triggerRect || !targetRect || !pianoBefore || !pianoAfter) {
     scoreResetStudioAnimationStyles(studio, trigger);
     scorePersistUiState();
+    scoreFlushDeferredVisualHighlight();
     return;
   }
 
-  const visual = scoreCreateTransitionVisual(dialog, targetRect, trigger, triggerRect);
+  const appearance = scoreDialogAppearance(dialog);
+  const visual = scoreCreateTransitionVisual(
+    dialog, targetRect, trigger, triggerRect, null, appearance, triggerAppearance,
+  );
   const scaleX = Math.max(0.01, triggerRect.width / targetRect.width);
   const scaleY = Math.max(0.01, triggerRect.height / targetRect.height);
   const deltaX = triggerRect.left - targetRect.left;
   const deltaY = triggerRect.top - targetRect.top;
   const targetRadius = visual.appearance.radius;
-  const triggerRadius = scoreCornerRadius(trigger);
+  const triggerRadius = triggerAppearance.radius;
   const overshoot = 1.009;
   const overshootX = -(targetRect.width * (overshoot - 1)) / 2;
   const overshootY = -(targetRect.height * (overshoot - 1)) / 2;
   const duration = 560;
   const targetShadow = visual.appearance.boxShadow;
-  const triggerShadow = getComputedStyle(trigger).boxShadow;
+  const triggerShadow = triggerAppearance.boxShadow;
 
   const sharedAnimation = scoreAnimateElement(visual.shell, [
     {
@@ -16755,7 +17030,7 @@ function scoreOpenStudio() {
     trigger,
     layer: visual.layer,
     animations: [sharedAnimation, snapshotAnimation, triggerAnimation, pianoAnimation],
-    onFinish: scorePersistUiState,
+    onFinish: () => scoreScheduleUiPersist(120),
   };
   SCORE_STATE.studioAnimation = transition;
   const settle = () => scoreFinishStudioAnimation(transition);
@@ -16777,12 +17052,14 @@ function scoreCloseStudio() {
   const pianoBefore = scoreRectSnapshot(piano);
   const snapshot = scoreCloneDialogSnapshot(dialog);
   const appearance = scoreDialogAppearance(dialog);
+  const triggerAppearance = scoreTriggerAppearance(trigger);
   const workbench = document.querySelector(".score-workbench");
   if (workbench) workbench.open = false;
 
   studio.classList.add("is-closing", "is-transitioning");
   piano.classList.add("is-score-transitioning");
   trigger.classList.add("is-launching");
+  scoreParkStudioLayout(studio, sourceRect, appearance);
   studio.hidden = true;
   shell?.classList.remove("score-is-open", "score-proof-is-open");
   trigger.setAttribute("aria-expanded", "false");
@@ -16799,18 +17076,20 @@ function scoreCloseStudio() {
     return;
   }
 
-  const visual = scoreCreateTransitionVisual(dialog, sourceRect, trigger, triggerRect, snapshot, appearance);
+  const visual = scoreCreateTransitionVisual(
+    dialog, sourceRect, trigger, triggerRect, snapshot, appearance, triggerAppearance,
+  );
   const scaleX = Math.max(0.01, triggerRect.width / sourceRect.width);
   const scaleY = Math.max(0.01, triggerRect.height / sourceRect.height);
   const deltaX = triggerRect.left - sourceRect.left;
   const deltaY = triggerRect.top - sourceRect.top;
   const sourceRadius = appearance.radius;
-  const triggerRadius = scoreCornerRadius(trigger);
+  const triggerRadius = triggerAppearance.radius;
   const undershoot = 0.965;
   const undershootX = deltaX + (triggerRect.width * (1 - undershoot)) / 2;
   const undershootY = deltaY + (triggerRect.height * (1 - undershoot)) / 2;
   const duration = 520;
-  const triggerShadow = getComputedStyle(trigger).boxShadow;
+  const triggerShadow = triggerAppearance.boxShadow;
 
   const sharedAnimation = scoreAnimateElement(visual.shell, [
     {
@@ -16884,7 +17163,7 @@ function scoreCloseStudio() {
     animations: [sharedAnimation, snapshotAnimation, triggerAnimation, pianoAnimation],
     onFinish: () => {
       try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
-      scorePersistUiState();
+      scoreScheduleUiPersist(120);
     },
   };
   SCORE_STATE.studioAnimation = transition;
@@ -17452,8 +17731,18 @@ initScoreStudio();
   // iOS-style shared-element launch. Only a fixed visual proxy is transformed;
   // the real piano and score layout never move, so the spring-like morph stays
   // smooth without reintroducing the former keyboard jump.
-  function createIosScoreTransitionVisual(dialog, rect, trigger, triggerRect, snapshot = null, appearance = null) {
-    const visual = scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapshot, appearance);
+  function createIosScoreTransitionVisual(
+    dialog,
+    rect,
+    trigger,
+    triggerRect,
+    snapshot = null,
+    appearance = null,
+    triggerAppearance = null,
+  ) {
+    const visual = scoreCreateTransitionVisual(
+      dialog, rect, trigger, triggerRect, snapshot, appearance, triggerAppearance,
+    );
     const dark = Boolean(
       document.querySelector(".app-shell")?.classList.contains("theme-dark")
       || document.documentElement.classList.contains("score-surface-dark")
@@ -17475,11 +17764,15 @@ initScoreStudio();
     if (SCORE_STATE.studioAnimation) return;
 
     const triggerRect = scoreRectSnapshot(trigger);
+    const triggerAppearance = scoreTriggerAppearance(trigger);
+    const parkedRect = scoreCachedParkedStudioRect();
+    const parkedAppearance = parkedRect ? scoreCachedParkedDialogAppearance() : null;
     scoreResetStudioAnimationStyles(studio, trigger);
     studio.classList.add("is-opening", "is-transitioning");
     trigger.classList.add("is-launching");
-    studio.hidden = false;
     shell?.classList.add("score-is-open");
+    studio.hidden = false;
+    scoreUnparkStudioLayout(studio);
     // Prepare the final page surface underneath the proxy before it grows.
     // With no full-screen veil, the keyboard stays composited and visible for
     // the entire hand-off instead of disappearing for the final frame.
@@ -17495,22 +17788,29 @@ initScoreStudio();
       trigger,
       layer: null,
       animations: [],
-      onFinish: scorePersistUiState,
+      onFinish: () => scoreScheduleUiPersist(120),
     };
     SCORE_STATE.studioAnimation = transition;
 
     window.requestAnimationFrame(() => {
       if (SCORE_STATE.studioAnimation !== transition) return;
-      const targetRect = scoreRectSnapshot(dialog);
+      // The mobile studio already has an explicit fixed rectangle. Measuring
+      // the dialog makes flex/grid resolve every score glyph before returning
+      // the same bounds, which is especially costly during playback.
+      const targetRect = parkedRect || scoreRectSnapshot(studio);
       if (!triggerRect || !targetRect) {
         setScoreSurfaceOpen(true);
         SCORE_STATE.studioAnimation = null;
         scoreResetStudioAnimationStyles(studio, trigger);
         scorePersistUiState();
+        scoreFlushDeferredVisualHighlight();
         return;
       }
 
-      const visual = createIosScoreTransitionVisual(dialog, targetRect, trigger, triggerRect);
+      const appearance = parkedAppearance || scoreDialogAppearance(dialog);
+      const visual = createIosScoreTransitionVisual(
+        dialog, targetRect, trigger, triggerRect, null, appearance, triggerAppearance,
+      );
       transition.layer = visual.layer;
       const scaleX = Math.max(0.01, triggerRect.width / targetRect.width);
       const scaleY = Math.max(0.01, triggerRect.height / targetRect.height);
@@ -17522,13 +17822,13 @@ initScoreStudio();
         return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
       };
       const targetRadius = visual.appearance.radius;
-      const triggerRadius = scoreCornerRadius(trigger);
+      const triggerRadius = triggerAppearance.radius;
       const overshoot = 1.012;
       const overshootX = -(targetRect.width * (overshoot - 1)) / 2;
       const overshootY = -(targetRect.height * (overshoot - 1)) / 2;
       const duration = reducedMotion ? 1 : 540;
       const targetShadow = visual.appearance.boxShadow;
-      const triggerShadow = getComputedStyle(trigger).boxShadow;
+      const triggerShadow = triggerAppearance.boxShadow;
 
       const sharedAnimation = scoreAnimateElement(visual.shell, [
         {
@@ -17595,10 +17895,11 @@ initScoreStudio();
 
     const workbench = document.querySelector(".score-workbench");
     if (workbench) workbench.open = false;
-    const sourceRect = scoreRectSnapshot(dialog);
+    const sourceRect = scoreRectSnapshot(studio);
     const triggerRect = scoreRectSnapshot(trigger);
     const snapshot = scoreCloneDialogSnapshot(dialog);
     const appearance = scoreDialogAppearance(dialog);
+    const triggerAppearance = scoreTriggerAppearance(trigger);
     studio.classList.add("is-closing", "is-transitioning");
     trigger.classList.add("is-launching");
     trigger.setAttribute("aria-expanded", "false");
@@ -17624,6 +17925,7 @@ initScoreStudio();
       triggerRect,
       snapshot,
       appearance,
+      triggerAppearance,
     );
     const scaleX = Math.max(0.01, triggerRect.width / sourceRect.width);
     const scaleY = Math.max(0.01, triggerRect.height / sourceRect.height);
@@ -17635,12 +17937,12 @@ initScoreStudio();
       return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
     };
     const sourceRadius = appearance.radius;
-    const triggerRadius = scoreCornerRadius(trigger);
+    const triggerRadius = triggerAppearance.radius;
     const openingBreathe = 1.006;
     const breatheX = -(sourceRect.width * (openingBreathe - 1)) / 2;
     const breatheY = -(sourceRect.height * (openingBreathe - 1)) / 2;
     const duration = reducedMotion ? 1 : 480;
-    const triggerShadow = getComputedStyle(trigger).boxShadow;
+    const triggerShadow = triggerAppearance.boxShadow;
 
     // Restore the page underneath the fixed proxy while keeping the keyboard
     // continuously visible; no full-screen veil is used during the morph.
@@ -17698,12 +18000,13 @@ initScoreStudio();
       layer: visual.layer,
       animations: [sharedAnimation, snapshotAnimation, triggerAnimation],
       onFinish: () => {
+        scoreParkStudioLayout(studio, sourceRect, appearance);
         studio.hidden = true;
         shell?.classList.remove("score-is-open", "score-proof-is-open");
         studio.style.removeProperty("--score-stage-top");
         studio.style.removeProperty("--score-stage-height");
         try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
-        scorePersistUiState();
+        scoreScheduleUiPersist(120);
       },
     };
     SCORE_STATE.studioAnimation = transition;

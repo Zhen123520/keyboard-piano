@@ -1,4 +1,4 @@
-const SHELL_CACHE = "keyboard-piano-shell-v5";
+const SHELL_CACHE = "keyboard-piano-shell-v6";
 const AUDIO_CACHE = "keyboard-piano-audio-salamander-v3-48k-mp3-320-web-v2";
 const SHELL_FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
