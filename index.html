@@ -3803,22 +3803,6 @@ kbd {
   pointer-events: none !important;
 }
 
-.score-transition-veil {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-  -webkit-backdrop-filter: blur(4px) saturate(0.92);
-  backdrop-filter: blur(4px) saturate(0.92);
-  transform: translateZ(0);
-  will-change: opacity, backdrop-filter;
-}
-
-.score-transition-layer.theme-dark .score-transition-veil {
-  background: #080a0f;
-}
-
 .score-transition-layer.score-transition-light .score-dialog,
 .score-transition-layer.score-transition-light .score-header,
 .score-transition-layer.score-transition-light .score-scroll {
@@ -17245,10 +17229,7 @@ initScoreStudio();
     );
     visual.layer.classList.toggle("theme-dark", dark);
     visual.layer.classList.toggle("score-transition-light", !dark);
-    const veil = document.createElement("div");
-    veil.className = "score-transition-veil";
-    visual.layer.prepend(veil);
-    return { ...visual, veil };
+    return visual;
   }
 
   scoreOpenStudio = function iosScoreOpenStudio() {
@@ -17265,6 +17246,10 @@ initScoreStudio();
     trigger.classList.add("is-launching");
     studio.hidden = false;
     shell?.classList.add("score-is-open");
+    // Prepare the final page surface underneath the proxy before it grows.
+    // With no full-screen veil, the keyboard stays composited and visible for
+    // the entire hand-off instead of disappearing for the final frame.
+    setScoreSurfaceOpen(true);
     updatePortraitScoreStage();
     trigger.setAttribute("aria-expanded", "true");
     trigger.setAttribute("aria-label", "收起识谱界面");
@@ -17356,17 +17341,8 @@ initScoreStudio();
         { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 1 },
       ], { duration, easing: "linear", fill: "both" });
 
-      const veilAnimation = scoreAnimateElement(visual.veil, [
-        { opacity: 0, offset: 0 },
-        { opacity: 0.12, offset: 0.16 },
-        { opacity: 0.55, offset: 0.58 },
-        { opacity: 0.86, offset: 0.86 },
-        { opacity: 1, offset: 1 },
-      ], { duration, easing: "cubic-bezier(0.2, 0.76, 0.2, 1)", fill: "both" });
-
-      transition.animations = [sharedAnimation, snapshotAnimation, triggerAnimation, veilAnimation];
+      transition.animations = [sharedAnimation, snapshotAnimation, triggerAnimation];
       const settle = () => {
-        setScoreSurfaceOpen(true);
         scoreFinishStudioAnimation(transition);
       };
       sharedAnimation.onfinish = settle;
@@ -17432,8 +17408,8 @@ initScoreStudio();
     const duration = reducedMotion ? 1 : 480;
     const triggerShadow = getComputedStyle(trigger).boxShadow;
 
-    // The veil begins fully opaque, allowing the real page surface to return
-    // underneath it without a colour flash before the proxy shrinks home.
+    // Restore the page underneath the fixed proxy while keeping the keyboard
+    // continuously visible; no full-screen veil is used during the morph.
     setScoreSurfaceOpen(false);
 
     const sharedAnimation = scoreAnimateElement(visual.shell, [
@@ -17481,19 +17457,12 @@ initScoreStudio();
       { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", offset: 1 },
     ], { duration, easing: "linear", fill: "both" });
 
-    const veilAnimation = scoreAnimateElement(visual.veil, [
-      { opacity: 1, offset: 0 },
-      { opacity: 0.72, offset: 0.34 },
-      { opacity: 0.22, offset: 0.76 },
-      { opacity: 0, offset: 1 },
-    ], { duration, easing: "cubic-bezier(0.3, 0, 0.2, 1)", fill: "both" });
-
     const transition = {
       direction: "closing",
       studio,
       trigger,
       layer: visual.layer,
-      animations: [sharedAnimation, snapshotAnimation, triggerAnimation, veilAnimation],
+      animations: [sharedAnimation, snapshotAnimation, triggerAnimation],
       onFinish: () => {
         studio.hidden = true;
         shell?.classList.remove("score-is-open", "score-proof-is-open");
