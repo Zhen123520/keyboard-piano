@@ -3803,6 +3803,28 @@ kbd {
   pointer-events: none !important;
 }
 
+.score-transition-veil {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  -webkit-backdrop-filter: blur(4px) saturate(0.92);
+  backdrop-filter: blur(4px) saturate(0.92);
+  transform: translateZ(0);
+  will-change: opacity, backdrop-filter;
+}
+
+.score-transition-layer.theme-dark .score-transition-veil {
+  background: #080a0f;
+}
+
+.score-transition-layer.score-transition-light .score-dialog,
+.score-transition-layer.score-transition-light .score-header,
+.score-transition-layer.score-transition-light .score-scroll {
+  background-color: #fff;
+}
+
 .score-transition-trigger {
   position: fixed !important;
   z-index: 2 !important;
@@ -17212,12 +17234,24 @@ initScoreStudio();
   window.visualViewport?.addEventListener("resize", refreshOpenScoreGeometry, { passive: true });
   window.visualViewport?.addEventListener("scroll", refreshOpenScoreGeometry, { passive: true });
 
-  // Keep the piano on its resting anchor while the score opens. The former
-  // shared-element animation cloned the complete score DOM and animated the
-  // piano's geometry; on iOS that caused both a vertical jump and dropped
-  // frames. The real dialog now uses only compositor-friendly opacity and
-  // transform keyframes, with no page scrolling or piano animation.
-  scoreOpenStudio = function stableScoreOpenStudio() {
+  // iOS-style shared-element launch. Only a fixed visual proxy is transformed;
+  // the real piano and score layout never move, so the spring-like morph stays
+  // smooth without reintroducing the former keyboard jump.
+  function createIosScoreTransitionVisual(dialog, rect, trigger, triggerRect, snapshot = null, appearance = null) {
+    const visual = scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapshot, appearance);
+    const dark = Boolean(
+      document.querySelector(".app-shell")?.classList.contains("theme-dark")
+      || document.documentElement.classList.contains("score-surface-dark")
+    );
+    visual.layer.classList.toggle("theme-dark", dark);
+    visual.layer.classList.toggle("score-transition-light", !dark);
+    const veil = document.createElement("div");
+    veil.className = "score-transition-veil";
+    visual.layer.prepend(veil);
+    return { ...visual, veil };
+  }
+
+  scoreOpenStudio = function iosScoreOpenStudio() {
     const studio = document.getElementById("score-studio");
     const trigger = document.getElementById("score-open");
     const shell = document.querySelector(".app-shell");
@@ -17225,45 +17259,122 @@ initScoreStudio();
     if (!studio || !trigger || !dialog || !studio.hidden) return;
     if (SCORE_STATE.studioAnimation) return;
 
+    const triggerRect = scoreRectSnapshot(trigger);
     scoreResetStudioAnimationStyles(studio, trigger);
-    studio.classList.add("is-opening");
+    studio.classList.add("is-opening", "is-transitioning");
+    trigger.classList.add("is-launching");
     studio.hidden = false;
     shell?.classList.add("score-is-open");
-    setScoreSurfaceOpen(true);
     updatePortraitScoreStage();
     trigger.setAttribute("aria-expanded", "true");
     trigger.setAttribute("aria-label", "收起识谱界面");
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const duration = reducedMotion ? 1 : 260;
-    const dialogAnimation = scoreAnimateElement(dialog, [
-      {
-        opacity: 0,
-        transform: "translate3d(0, 12px, 0) scale(0.992)",
-        offset: 0,
-      },
-      {
-        opacity: 1,
-        transform: "translate3d(0, 0, 0) scale(1)",
-        offset: 1,
-      },
-    ], { duration, easing: "cubic-bezier(0.2, 0.78, 0.2, 1)", fill: "both" });
-
     const transition = {
       direction: "opening",
       studio,
       trigger,
       layer: null,
-      animations: [dialogAnimation],
+      animations: [],
       onFinish: scorePersistUiState,
     };
     SCORE_STATE.studioAnimation = transition;
-    const settle = () => scoreFinishStudioAnimation(transition);
-    dialogAnimation.onfinish = settle;
-    dialogAnimation.oncancel = settle;
+
+    window.requestAnimationFrame(() => {
+      if (SCORE_STATE.studioAnimation !== transition) return;
+      const targetRect = scoreRectSnapshot(dialog);
+      if (!triggerRect || !targetRect) {
+        setScoreSurfaceOpen(true);
+        SCORE_STATE.studioAnimation = null;
+        scoreResetStudioAnimationStyles(studio, trigger);
+        scorePersistUiState();
+        return;
+      }
+
+      const visual = createIosScoreTransitionVisual(dialog, targetRect, trigger, triggerRect);
+      transition.layer = visual.layer;
+      const scaleX = Math.max(0.01, triggerRect.width / targetRect.width);
+      const scaleY = Math.max(0.01, triggerRect.height / targetRect.height);
+      const deltaX = triggerRect.left - targetRect.left;
+      const deltaY = triggerRect.top - targetRect.top;
+      const centeredTransform = (x, y) => {
+        const left = deltaX + (triggerRect.width - targetRect.width * x) / 2;
+        const top = deltaY + (triggerRect.height - targetRect.height * y) / 2;
+        return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
+      };
+      const targetRadius = visual.appearance.radius;
+      const triggerRadius = scoreCornerRadius(trigger);
+      const overshoot = 1.012;
+      const overshootX = -(targetRect.width * (overshoot - 1)) / 2;
+      const overshootY = -(targetRect.height * (overshoot - 1)) / 2;
+      const duration = reducedMotion ? 1 : 540;
+      const targetShadow = visual.appearance.boxShadow;
+      const triggerShadow = getComputedStyle(trigger).boxShadow;
+
+      const sharedAnimation = scoreAnimateElement(visual.shell, [
+        {
+          transform: centeredTransform(scaleX, scaleY),
+          borderRadius: scoreScaledRadius(triggerRadius, scaleX, scaleY),
+          boxShadow: triggerShadow,
+          offset: 0,
+          easing: "cubic-bezier(0.16, 0.82, 0.2, 1)",
+        },
+        {
+          transform: centeredTransform(scaleX * 0.94, scaleY * 0.9),
+          borderRadius: scoreScaledRadius(triggerRadius, scaleX * 0.94, scaleY * 0.9),
+          boxShadow: triggerShadow,
+          offset: 0.1,
+          easing: "cubic-bezier(0.32, 0.72, 0.25, 1)",
+        },
+        {
+          transform: `translate3d(${overshootX}px, ${overshootY}px, 0) scale(${overshoot})`,
+          borderRadius: `${Math.max(0, targetRadius * 0.93)}px`,
+          boxShadow: targetShadow,
+          offset: 0.86,
+          easing: "cubic-bezier(0.2, 0.86, 0.2, 1)",
+        },
+        {
+          transform: "translate3d(0, 0, 0) scale(1)",
+          borderRadius: `${targetRadius}px`,
+          boxShadow: targetShadow,
+          offset: 1,
+        },
+      ], { duration, easing: "linear", fill: "both" });
+
+      const snapshotAnimation = scoreAnimateElement(visual.dialogSnapshot, [
+        { opacity: 0, offset: 0 },
+        { opacity: 0.04, offset: 0.16 },
+        { opacity: 0.7, offset: 0.48 },
+        { opacity: 1, offset: 0.72 },
+        { opacity: 1, offset: 1 },
+      ], { duration, easing: "linear", fill: "both" });
+
+      const triggerAnimation = scoreAnimateElement(visual.triggerGhost, [
+        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", offset: 0 },
+        { opacity: 0.96, transform: "translate3d(0, 0, 0) scale(0.94)", offset: 0.1 },
+        { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0.27 },
+        { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 1 },
+      ], { duration, easing: "linear", fill: "both" });
+
+      const veilAnimation = scoreAnimateElement(visual.veil, [
+        { opacity: 0, offset: 0 },
+        { opacity: 0.12, offset: 0.16 },
+        { opacity: 0.55, offset: 0.58 },
+        { opacity: 0.86, offset: 0.86 },
+        { opacity: 1, offset: 1 },
+      ], { duration, easing: "cubic-bezier(0.2, 0.76, 0.2, 1)", fill: "both" });
+
+      transition.animations = [sharedAnimation, snapshotAnimation, triggerAnimation, veilAnimation];
+      const settle = () => {
+        setScoreSurfaceOpen(true);
+        scoreFinishStudioAnimation(transition);
+      };
+      sharedAnimation.onfinish = settle;
+      sharedAnimation.oncancel = settle;
+    });
   };
 
-  scoreCloseStudio = function stableScoreCloseStudio() {
+  scoreCloseStudio = function iosScoreCloseStudio() {
     const studio = document.getElementById("score-studio");
     const trigger = document.getElementById("score-open");
     const shell = document.querySelector(".app-shell");
@@ -17274,35 +17385,118 @@ initScoreStudio();
 
     const workbench = document.querySelector(".score-workbench");
     if (workbench) workbench.open = false;
-    studio.classList.add("is-closing");
+    const sourceRect = scoreRectSnapshot(dialog);
+    const triggerRect = scoreRectSnapshot(trigger);
+    const snapshot = scoreCloneDialogSnapshot(dialog);
+    const appearance = scoreDialogAppearance(dialog);
+    studio.classList.add("is-closing", "is-transitioning");
+    trigger.classList.add("is-launching");
     trigger.setAttribute("aria-expanded", "false");
     trigger.setAttribute("aria-label", "开启识谱界面");
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const duration = reducedMotion ? 1 : 220;
-    const dialogAnimation = scoreAnimateElement(dialog, [
+    if (!sourceRect || !triggerRect) {
+      studio.hidden = true;
+      shell?.classList.remove("score-is-open", "score-proof-is-open");
+      setScoreSurfaceOpen(false);
+      studio.style.removeProperty("--score-stage-top");
+      studio.style.removeProperty("--score-stage-height");
+      scoreResetStudioAnimationStyles(studio, trigger);
+      try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
+      scorePersistUiState();
+      return;
+    }
+
+    const visual = createIosScoreTransitionVisual(
+      dialog,
+      sourceRect,
+      trigger,
+      triggerRect,
+      snapshot,
+      appearance,
+    );
+    const scaleX = Math.max(0.01, triggerRect.width / sourceRect.width);
+    const scaleY = Math.max(0.01, triggerRect.height / sourceRect.height);
+    const deltaX = triggerRect.left - sourceRect.left;
+    const deltaY = triggerRect.top - sourceRect.top;
+    const centeredTransform = (x, y) => {
+      const left = deltaX + (triggerRect.width - sourceRect.width * x) / 2;
+      const top = deltaY + (triggerRect.height - sourceRect.height * y) / 2;
+      return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
+    };
+    const sourceRadius = appearance.radius;
+    const triggerRadius = scoreCornerRadius(trigger);
+    const openingBreathe = 1.006;
+    const breatheX = -(sourceRect.width * (openingBreathe - 1)) / 2;
+    const breatheY = -(sourceRect.height * (openingBreathe - 1)) / 2;
+    const duration = reducedMotion ? 1 : 480;
+    const triggerShadow = getComputedStyle(trigger).boxShadow;
+
+    // The veil begins fully opaque, allowing the real page surface to return
+    // underneath it without a colour flash before the proxy shrinks home.
+    setScoreSurfaceOpen(false);
+
+    const sharedAnimation = scoreAnimateElement(visual.shell, [
       {
-        opacity: 1,
         transform: "translate3d(0, 0, 0) scale(1)",
+        borderRadius: `${sourceRadius}px`,
+        boxShadow: appearance.boxShadow,
         offset: 0,
+        easing: "cubic-bezier(0.3, 0, 0.2, 1)",
       },
       {
-        opacity: 0,
-        transform: "translate3d(0, 10px, 0) scale(0.994)",
+        transform: `translate3d(${breatheX}px, ${breatheY}px, 0) scale(${openingBreathe})`,
+        borderRadius: `${Math.max(0, sourceRadius * 0.95)}px`,
+        boxShadow: appearance.boxShadow,
+        offset: 0.12,
+        easing: "cubic-bezier(0.3, 0, 0.2, 1)",
+      },
+      {
+        transform: centeredTransform(scaleX * 0.94, scaleY * 0.9),
+        borderRadius: scoreScaledRadius(triggerRadius, scaleX * 0.94, scaleY * 0.9),
+        boxShadow: triggerShadow,
+        offset: 0.88,
+        easing: "cubic-bezier(0.22, 0.72, 0.2, 1)",
+      },
+      {
+        transform: centeredTransform(scaleX, scaleY),
+        borderRadius: scoreScaledRadius(triggerRadius, scaleX, scaleY),
+        boxShadow: triggerShadow,
         offset: 1,
       },
-    ], { duration, easing: "cubic-bezier(0.32, 0, 0.68, 1)", fill: "both" });
+    ], { duration, easing: "linear", fill: "both" });
+
+    const snapshotAnimation = scoreAnimateElement(visual.dialogSnapshot, [
+      { opacity: 1, offset: 0 },
+      { opacity: 1, offset: 0.28 },
+      { opacity: 0.72, offset: 0.54 },
+      { opacity: 0.08, offset: 0.88 },
+      { opacity: 0, offset: 1 },
+    ], { duration, easing: "linear", fill: "both" });
+
+    const triggerAnimation = scoreAnimateElement(visual.triggerGhost, [
+      { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0 },
+      { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0.7 },
+      { opacity: 0.55, transform: "translate3d(0, 0, 0) scale(0.9)", offset: 0.9 },
+      { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", offset: 1 },
+    ], { duration, easing: "linear", fill: "both" });
+
+    const veilAnimation = scoreAnimateElement(visual.veil, [
+      { opacity: 1, offset: 0 },
+      { opacity: 0.72, offset: 0.34 },
+      { opacity: 0.22, offset: 0.76 },
+      { opacity: 0, offset: 1 },
+    ], { duration, easing: "cubic-bezier(0.3, 0, 0.2, 1)", fill: "both" });
 
     const transition = {
       direction: "closing",
       studio,
       trigger,
-      layer: null,
-      animations: [dialogAnimation],
+      layer: visual.layer,
+      animations: [sharedAnimation, snapshotAnimation, triggerAnimation, veilAnimation],
       onFinish: () => {
         studio.hidden = true;
         shell?.classList.remove("score-is-open", "score-proof-is-open");
-        setScoreSurfaceOpen(false);
         studio.style.removeProperty("--score-stage-top");
         studio.style.removeProperty("--score-stage-height");
         try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
@@ -17311,8 +17505,8 @@ initScoreStudio();
     };
     SCORE_STATE.studioAnimation = transition;
     const settle = () => scoreFinishStudioAnimation(transition);
-    dialogAnimation.onfinish = settle;
-    dialogAnimation.oncancel = settle;
+    sharedAnimation.onfinish = settle;
+    sharedAnimation.oncancel = settle;
   };
 
   // initScoreStudio bound the close button before this optimization script
