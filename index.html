@@ -1986,6 +1986,7 @@ kbd {
     max(12px, env(safe-area-inset-left));
   color: #26303b;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-variant-emoji: text;
   touch-action: manipulation;
 }
 
@@ -3771,6 +3772,8 @@ kbd {
   overflow: hidden;
   pointer-events: none;
   contain: strict;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-variant-emoji: text;
 }
 
 .score-transition-shell {
@@ -9185,12 +9188,12 @@ function scoreStudioMarkup() {
         </div>
         <div class="score-header-actions">
           <input id="score-file" class="score-file-input" type="file" accept=".kpiano,application/json,text/plain,image/jpeg,image/png,image/webp,application/pdf" multiple>
-          <button id="score-choose-files" class="score-inline-button" type="button"><span aria-hidden="true">⌁</span>导入谱面</button>
+          <button id="score-choose-files" class="score-inline-button" type="button"><span aria-hidden="true">⌁&#xFE0E;</span>导入谱面</button>
           <button id="score-recognize" class="score-inline-button score-primary-button" type="button" disabled>开始识谱</button>
           <button id="score-cancel-recognition" class="score-inline-button" type="button" hidden>停止识别</button>
           <span id="score-confidence" class="score-confidence">等待导入</span>
-          <button id="score-export" class="score-inline-button score-export-button" type="button" disabled aria-label="将识谱结果作为 TXT 文件分享或保存"><span aria-hidden="true">↗</span>分享 TXT</button>
-          <button id="score-close" class="score-close-button" type="button" aria-label="关闭识谱界面"><span aria-hidden="true">×</span></button>
+          <button id="score-export" class="score-inline-button score-export-button" type="button" disabled aria-label="将识谱结果作为 TXT 文件分享或保存"><span aria-hidden="true">↗&#xFE0E;</span>分享 TXT</button>
+          <button id="score-close" class="score-close-button" type="button" aria-label="关闭识谱界面"><span aria-hidden="true">×&#xFE0E;</span></button>
         </div>
       </header>
 
@@ -9218,8 +9221,8 @@ function scoreStudioMarkup() {
           </div>
 
           <div class="score-transport">
-            <button id="score-play" class="score-play-button" type="button" disabled><span aria-hidden="true">▶</span><strong>播放</strong></button>
-            <button id="score-stop" class="score-stop-button" type="button" disabled aria-label="停止播放">■</button>
+            <button id="score-play" class="score-play-button" type="button" disabled><span aria-hidden="true">▶&#xFE0E;</span><strong>播放</strong></button>
+            <button id="score-stop" class="score-stop-button" type="button" disabled aria-label="停止播放">■&#xFE0E;</button>
             <label class="score-timeline"><input id="score-timeline" type="range" min="0" max="1" value="0" step="0.001" aria-label="播放进度"><span><output id="score-current-time">00:00</output><output id="score-total-time">00:00</output></span></label>
             <button id="score-toggle-workbench" class="score-inline-button score-workbench-toggle" type="button" aria-controls="score-workbench" aria-expanded="false">校对</button>
           </div>
@@ -15865,7 +15868,9 @@ function scoreSetPlayButton(playing, signature = scoreRenderedTrackSignature()) 
   button.disabled = !hasSequence;
   button.setAttribute("aria-busy", String(waiting));
   button.classList.toggle("is-playing", activelyPlaying || queued);
-  button.querySelector("span").textContent = activelyPlaying ? "Ⅱ" : (queued ? "×" : (retryable ? "↻" : "▶"));
+  button.querySelector("span").textContent = activelyPlaying
+    ? "Ⅱ\uFE0E"
+    : (queued ? "×\uFE0E" : (retryable ? "↻\uFE0E" : "▶\uFE0E"));
   button.querySelector("strong").textContent = activelyPlaying
     ? "暂停"
     : (queued
@@ -16362,6 +16367,12 @@ function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapsho
   const layer = document.createElement("div");
   layer.className = "score-transition-layer";
   layer.setAttribute("aria-hidden", "true");
+  // The clone sits outside .score-studio, whose inherited system font keeps
+  // symbol glyphs in their monochrome text presentation on iOS. Copy that
+  // family explicitly so arrows and playback controls never fall back to the
+  // coloured Apple Emoji font during the hand-off.
+  layer.style.fontFamily = getComputedStyle(dialog).fontFamily;
+  layer.style.fontVariantEmoji = "text";
 
   const shell = document.createElement("div");
   shell.className = "score-transition-shell";
