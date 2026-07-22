@@ -3798,6 +3798,39 @@ kbd {
   will-change: opacity;
 }
 
+/* The transition snapshot lives directly under <body>, so it does not match
+   the portrait rules scoped through .app-shell.score-is-open. Mirror that
+   final flex/grid layout here to keep the transport row at the same Y
+   coordinate before and after the visual hand-off. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .score-transition-shell > .score-dialog {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .score-transition-shell .score-scroll {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .score-transition-shell .score-performance {
+    min-height: 0;
+    flex: 1 1 auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .score-transition-shell .score-visual {
+    min-height: 0;
+    max-height: none;
+    height: auto;
+  }
+}
+
 .score-transition-shell > .score-dialog *,
 .score-transition-trigger {
   pointer-events: none !important;
