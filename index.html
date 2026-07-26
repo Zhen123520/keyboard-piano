@@ -7320,23 +7320,58 @@ html.piano-ios-fast-theme .key-reflection::after {
 
 @media (max-width: 760px) and (orientation: portrait) {
   .app-shell {
+    height: var(--piano-github-visible-height);
     min-height: var(--piano-github-visible-height);
+    max-height: var(--piano-github-visible-height);
+    overflow-y: hidden;
     padding-bottom: max(9px, env(safe-area-inset-bottom));
   }
 
   .app-shell.score-is-open,
   .app-shell.score-is-open.score-proof-is-open {
+    height: var(--piano-github-visible-height);
     min-height: var(--piano-github-visible-height);
-    justify-content: flex-start;
+    max-height: var(--piano-github-visible-height);
+    justify-content: flex-end;
     gap: 6px;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding:
       max(7px, env(safe-area-inset-top))
       max(7px, env(safe-area-inset-right))
       max(9px, env(safe-area-inset-bottom))
       max(7px, env(safe-area-inset-left));
     scroll-padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .app-shell.score-is-open .score-studio {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .app-shell.score-is-open .score-dialog {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .app-shell.score-is-open .score-scroll {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+
+  .app-shell.score-is-open .score-performance {
+    min-height: 100%;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+  }
+
+  .app-shell.score-is-open .score-visual {
+    min-height: 0;
+    max-height: none;
   }
 
   .piano-cache-progress {
