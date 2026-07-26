@@ -7299,6 +7299,65 @@ html.piano-ios-fast-theme .key-reflection::after {
 }
 </style>
 
+<style id="piano-github-mobile-layout">
+/* GitHub Pages runs in a normal browser viewport, not the file-manager web
+   view used by the downloadable build. Keep every control inside the part of
+   iPhone Safari that is actually visible while its toolbars expand/collapse. */
+:root {
+  --piano-github-visible-height: 100svh;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --piano-github-visible-height: 100dvh;
+  }
+}
+
+#app,
+.app-shell {
+  min-height: var(--piano-github-visible-height);
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .app-shell {
+    min-height: var(--piano-github-visible-height);
+    padding-bottom: max(9px, env(safe-area-inset-bottom));
+  }
+
+  .app-shell.score-is-open,
+  .app-shell.score-is-open.score-proof-is-open {
+    min-height: var(--piano-github-visible-height);
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding:
+      max(7px, env(safe-area-inset-top))
+      max(7px, env(safe-area-inset-right))
+      max(9px, env(safe-area-inset-bottom))
+      max(7px, env(safe-area-inset-left));
+    scroll-padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .piano-cache-progress {
+    gap: 6px 12px;
+    margin: 10px 2px;
+    line-height: 1.35;
+  }
+
+  .piano-cache-progress progress {
+    margin: 0;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 650px) and (orientation: portrait) {
+  .score-visual {
+    min-height: clamp(184px, 30dvh, 210px);
+    max-height: clamp(184px, 30dvh, 210px);
+  }
+}
+</style>
+
 
 </head>
 <body>
@@ -17845,6 +17904,31 @@ initScoreStudio();
 
 <script id="piano-web-runtime">
 (() => {
+  // iPhone Safari's translucent bottom toolbar can cover layout-viewport
+  // content. visualViewport reports the currently usable height, including
+  // changes while the toolbar expands, collapses or the phone rotates.
+  const syncVisibleViewportHeight = (() => {
+    let frame = 0;
+    const apply = () => {
+      frame = 0;
+      const height = Math.round(window.visualViewport?.height || window.innerHeight || 0);
+      if (height > 0) {
+        document.documentElement.style.setProperty(
+          "--piano-github-visible-height",
+          `${height}px`,
+        );
+      }
+    };
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(apply);
+    };
+  })();
+  syncVisibleViewportHeight();
+  window.addEventListener("resize", syncVisibleViewportHeight, { passive: true });
+  window.addEventListener("orientationchange", syncVisibleViewportHeight, { passive: true });
+  window.visualViewport?.addEventListener("resize", syncVisibleViewportHeight, { passive: true });
+
   const AUDIO_ROOT = "./audio/";
   const AUDIO_VERSION = "salamander-v3-48k-mp3-320-web-v2";
   const AUDIO_READY_KEY = `@web-library:${AUDIO_VERSION}`;
