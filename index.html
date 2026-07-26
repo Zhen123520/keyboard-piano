@@ -451,8 +451,7 @@ html.keyboard-navigation .crystal-key:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 5px 12px;
-  /* Keep the status group visually centered between the controls and keys. */
-  margin: -4px 2px 6px;
+  margin: -10px 2px 12px;
   color: #66717e;
   font-size: 10px;
   font-weight: 650;
@@ -1986,7 +1985,6 @@ kbd {
     max(12px, env(safe-area-inset-left));
   color: #26303b;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-variant-emoji: text;
   touch-action: manipulation;
 }
 
@@ -3772,8 +3770,6 @@ kbd {
   overflow: hidden;
   pointer-events: none;
   contain: strict;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-variant-emoji: text;
 }
 
 .score-transition-shell {
@@ -3801,48 +3797,9 @@ kbd {
   will-change: opacity;
 }
 
-/* The transition snapshot lives directly under <body>, so it does not match
-   the portrait rules scoped through .app-shell.score-is-open. Mirror that
-   final flex/grid layout here to keep the transport row at the same Y
-   coordinate before and after the visual hand-off. */
-@media (max-width: 760px) and (orientation: portrait) {
-  .score-transition-shell > .score-dialog {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .score-transition-shell .score-scroll {
-    display: flex;
-    min-height: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-
-  .score-transition-shell .score-performance {
-    min-height: 0;
-    flex: 1 1 auto;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-
-  .score-transition-shell .score-visual {
-    min-height: 0;
-    max-height: none;
-    height: auto;
-  }
-}
-
 .score-transition-shell > .score-dialog *,
 .score-transition-trigger {
   pointer-events: none !important;
-}
-
-.score-transition-layer.score-transition-light .score-dialog,
-.score-transition-layer.score-transition-light .score-header,
-.score-transition-layer.score-transition-light .score-scroll {
-  background-color: #fff;
 }
 
 .score-transition-trigger {
@@ -6313,110 +6270,6 @@ kbd {
     justify-content: flex-end;
     padding-bottom: max(9px, env(safe-area-inset-bottom));
   }
-
-  .app-shell.score-is-open,
-  .app-shell.score-is-open.score-proof-is-open {
-    height: 100svh;
-    min-height: 100svh;
-    gap: 0;
-    overflow: hidden;
-    padding-top: max(8px, env(safe-area-inset-top));
-  }
-
-  /* The score uses the genuinely empty area above the anchored piano. It is
-     removed from flex layout so opening it can never push the keyboard down. */
-  .app-shell.score-is-open .score-studio {
-    position: fixed;
-    z-index: 40;
-    top: var(--score-stage-top, 4px);
-    right: max(6px, env(safe-area-inset-right));
-    bottom: auto;
-    left: max(6px, env(safe-area-inset-left));
-    width: auto;
-    height: var(--score-stage-height, 52svh);
-    max-height: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .app-shell.score-is-open .score-dialog {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    max-height: none;
-    flex-direction: column;
-    margin: 0;
-    overflow: hidden;
-  }
-
-  .app-shell.score-is-open .score-scroll {
-    display: flex;
-    min-height: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-
-  .app-shell.score-is-open .score-performance {
-    min-height: 0;
-    flex: 1 1 auto;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-
-  .app-shell.score-is-open .score-visual {
-    min-height: 0;
-    max-height: none;
-    height: auto;
-  }
-}
-
-/* Keep the expanded score stage continuous with the active appearance,
-   including the area behind iOS browser chrome. The live theme class stays on
-   .app-shell for fast WebKit restyles, so score-surface-dark mirrors it here. */
-html.score-surface-open:not(.score-surface-dark),
-html.score-surface-open:not(.score-surface-dark) body {
-  --page-root-bg: #fff;
-  overflow: hidden !important;
-  background: #fff !important;
-}
-
-html.score-surface-open:not(.score-surface-dark) .app-shell {
-  background: #fff !important;
-}
-
-html.score-surface-open:not(.score-surface-dark) .ambient,
-html.score-surface-open.score-surface-dark .ambient {
-  display: none !important;
-}
-
-html.score-surface-open:not(.score-surface-dark) .score-dialog,
-html.score-surface-open:not(.score-surface-dark) .score-header,
-html.score-surface-open:not(.score-surface-dark) .score-scroll {
-  background-color: #fff;
-}
-
-html.score-surface-open.score-surface-dark,
-html.score-surface-open.score-surface-dark body {
-  --page-root-bg: #080a0f;
-  overflow: hidden !important;
-  background: #080a0f !important;
-}
-
-html.score-surface-open.score-surface-dark .app-shell {
-  background:
-    radial-gradient(circle at 18% 8%, rgba(82, 104, 164, 0.18), transparent 35%),
-    radial-gradient(circle at 83% 76%, rgba(30, 120, 113, 0.11), transparent 38%),
-    linear-gradient(155deg, #0b0e14, #030407 74%) !important;
-}
-
-html.score-surface-open.score-surface-dark .score-dialog {
-  background-color: #080b12;
-}
-
-html.score-surface-open.score-surface-dark .score-header,
-html.score-surface-open.score-surface-dark .score-scroll {
-  background-color: rgba(4, 8, 14, 0.88);
 }
 
 .score-studio.is-opening .score-dialog,
@@ -6515,236 +6368,6 @@ html.piano-ios-fast-theme .piano-cold-start > section {
 
 html.piano-ios-fast-theme .keyboard-well::after {
   display: none !important;
-}
-</style>
-<style id="score-ui-stability-fixes">
-/* Keep the real score trigger painted for the whole shared-element hand-off.
-   A frozen proxy sits above the growing sheet, so neither the real button nor
-   its glass material disappears and then flashes back at the end. */
-.score-open-control.is-launching {
-  opacity: 1 !important;
-}
-
-.score-transition-trigger {
-  opacity: 1 !important;
-  transform: none !important;
-  -webkit-animation: none !important;
-  animation: none !important;
-}
-
-.score-transition-layer {
-  inset: auto !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: visible !important;
-  contain: none !important;
-}
-
-/* After the first close, keep the already-laid-out score parked outside the
-   viewport. The hidden attribute still owns application/accessibility state;
-   this visual cache only prevents every reopen from laying out thousands of
-   notation glyphs again. content-visibility lets supporting WebKit versions
-   retain that layout without painting or traversing the parked subtree. */
-.score-studio[hidden].score-layout-parked {
-  display: block !important;
-  position: fixed !important;
-  z-index: -1 !important;
-  inset: 0 auto auto -10000px !important;
-  width: var(--score-park-width, 1px) !important;
-  height: var(--score-park-height, 1px) !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  contain: strict;
-  content-visibility: hidden;
-}
-
-/* The score transition already carries an opaque visual snapshot. Background
-   sampling adds substantial compositor work on mobile Safari without adding
-   useful depth here, and can invalidate the piano layer in dark mode. Keep all
-   affected surfaces on their existing gradients and shadows, but remove blur. */
-.piano-console,
-.keyboard-well,
-.volume-control,
-.keyboard-key-control,
-.transpose-control,
-.theme-control,
-.score-open-control,
-.score-dialog,
-.score-header,
-.score-inline-button,
-.score-close-button,
-.score-play-button,
-.score-stop-button,
-.score-transition-shell > .score-dialog {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-
-html.score-surface-open .ambient {
-  display: block !important;
-}
-
-/* The live score is never transformed; only its fixed proxy animates. Avoid a
-   second promoted layer so the proxy can hand off to an already-painted score
-   and piano instead of producing a blank compositor frame. */
-.score-studio.is-opening .score-dialog,
-.score-studio.is-closing .score-dialog {
-  backface-visibility: visible !important;
-  transform: none !important;
-  will-change: auto !important;
-}
-
-/* Hide the live sheet as one composited surface. visibility is inherited and
-   makes WebKit restyle every nested note; opacity changes only this root. */
-.score-studio.is-transitioning .score-dialog {
-  visibility: visible !important;
-  opacity: 0 !important;
-}
-
-/* One bounded vertical scroller is used in every orientation. The normal
-   performance grid fills the stage so its transport stays bottom-anchored;
-   proofing switches to natural height below without creating a second scroll. */
-.app-shell.score-is-open .score-dialog,
-.score-transition-shell > .score-dialog,
-.score-studio.score-layout-parked .score-dialog {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.score-studio.score-layout-parked .score-dialog {
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  margin: 0;
-  overflow: hidden;
-}
-
-.app-shell.score-is-open .score-scroll,
-.score-transition-shell .score-scroll,
-.score-studio.score-layout-parked .score-scroll {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-}
-
-.app-shell.score-is-open .score-performance,
-.score-transition-shell .score-performance,
-.score-studio.score-layout-parked .score-performance {
-  min-height: 0;
-  flex: 1 1 auto;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.app-shell.score-is-open .score-visual,
-.score-transition-shell .score-visual,
-.score-studio.score-layout-parked .score-visual {
-  min-height: 0;
-  height: auto;
-  max-height: none;
-  contain: layout paint style;
-}
-
-/* A long imported score can contain thousands of nested glyph nodes. The
-   transition snapshot is intentionally capped, and none of its children need
-   independent interpolation while the containing sheet is being composited. */
-.score-transition-shell .score-transition-visual-preview {
-  scroll-behavior: auto !important;
-  contain: layout paint style;
-}
-
-.score-transition-shell .score-transition-visual-preview .score-note-chip {
-  transition: none !important;
-}
-
-/* Once proofing is explicitly opened, the performance block switches to its
-   natural content height. The single score scroller can then reach the page
-   thumbnails and editor without changing the normal transport-row position. */
-.app-shell.score-is-open.score-proof-is-open .score-performance {
-  min-height: max-content;
-  flex: 0 0 auto;
-  grid-template-rows: auto auto auto auto;
-}
-
-@media (max-width: 760px) and (orientation: portrait) {
-  .app-shell.score-is-open.score-proof-is-open .score-visual {
-    min-height: clamp(240px, 32svh, 340px);
-    height: clamp(240px, 32svh, 340px);
-    max-height: clamp(240px, 32svh, 340px);
-  }
-}
-
-@media (orientation: landscape) and (max-height: 760px) {
-  .app-shell.score-is-open.score-proof-is-open .score-visual {
-    min-height: 176px;
-    height: 176px;
-    max-height: 176px;
-  }
-}
-
-/* Touch browsers can retain :hover after a tap. Restore the settled materials
-   on coarse pointers so every control keeps the same appearance throughout
-   the score hand-off; real mouse hover remains unchanged. */
-@media (hover: none), (pointer: coarse) {
-  .theme-control:hover,
-  .transpose-step:hover,
-  .transpose-value:hover,
-  .score-open-control:hover,
-  .score-inline-button:hover:not(:disabled),
-  .score-close-button:hover:not(:disabled),
-  .score-play-button:hover:not(:disabled),
-  .score-stop-button:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.56);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(218, 228, 240, 0.26));
-    filter: none;
-  }
-
-  .score-close-button:hover:not(:disabled) {
-    color: #65707c;
-  }
-
-  .score-inline-button.score-primary-button:hover:not(:disabled),
-  .score-play-button:hover:not(:disabled) {
-    border-color: rgba(122, 104, 242, 0.34);
-    background:
-      linear-gradient(180deg, rgba(133, 113, 255, 0.34), rgba(69, 53, 176, 0.2));
-  }
-
-  .piano-dark-page .theme-control:hover,
-  .piano-dark-page .transpose-step:hover:not(:disabled),
-  .piano-dark-page .transpose-value:hover:not(:disabled),
-  .piano-dark-page .score-open-control:hover,
-  .piano-dark-page .score-inline-button:hover:not(:disabled),
-  .piano-dark-page .score-close-button:hover:not(:disabled),
-  .piano-dark-page .score-play-button:hover:not(:disabled),
-  .piano-dark-page .score-stop-button:hover:not(:disabled) {
-    border-color: rgba(220, 231, 252, 0.17);
-    background:
-      linear-gradient(180deg, rgba(42, 53, 72, 0.46), rgba(2, 6, 13, 0.4));
-  }
-
-  .piano-dark-page .score-inline-button.score-primary-button:hover:not(:disabled),
-  .piano-dark-page .score-play-button:hover:not(:disabled) {
-    border-color: rgba(159, 143, 255, 0.3);
-    color: #f3f0ff;
-    background:
-      linear-gradient(180deg, rgba(111, 91, 236, 0.3), rgba(21, 15, 58, 0.4));
-  }
 }
 </style>
 <style id="piano-clear-keycaps-v2">
@@ -7504,15 +7127,179 @@ html.score-surface-open .ambient {
   content: none !important;
 }
 </style>
+<style id="piano-real-key-reflections-v12">
+/* A separate optical layer keeps the reflected environment above the internal
+   LED volume but below the legends and switch stem. The broad softbox, horizon
+   band and compact specular lobe move together as the viewing point changes. */
+.crystal-key {
+  --reflection-x: 29%;
+  --reflection-y: 15%;
+  --reflection-angle: -14deg;
+  --reflection-strength: 0.58;
+}
+
+.key-reflection,
+.theme-dark .key-reflection,
+.piano-dark-page .key-reflection {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0.68;
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.19) 0,
+      rgba(255, 255, 255, 0.055) 9%,
+      rgba(255, 255, 255, 0.012) 19%,
+      transparent 34%),
+    radial-gradient(ellipse 116% 48% at 50% -8%,
+      rgba(242, 251, 255, 0.22) 0,
+      rgba(215, 239, 248, 0.075) 43%,
+      transparent 72%),
+    linear-gradient(118deg,
+      rgba(187, 226, 244, 0.055) 0 15%,
+      transparent 29% 70%,
+      rgba(255, 232, 205, 0.035) 87% 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    inset 1px 0 0 rgba(229, 247, 252, 0.19),
+    inset -1px 0 0 rgba(48, 77, 89, 0.06),
+    inset 0 -1px 0 rgba(31, 58, 70, 0.08);
+  mix-blend-mode: screen;
+  transform: translateZ(5px);
+  transition:
+    opacity 110ms ease,
+    filter 110ms ease,
+    transform 70ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+/* A long, low-contrast window reflection supplies material scale. Its
+   background position follows the same optical point as the compact glint. */
+.key-reflection::before {
+  position: absolute;
+  z-index: 0;
+  inset:
+    calc(var(--clear-bevel-top) + 1px)
+    calc(var(--clear-bevel-x) + 1px)
+    calc(var(--clear-bevel-bottom) + 1px);
+  border-radius: var(--clear-inner-radius);
+  content: "";
+  opacity: 0.72;
+  background:
+    linear-gradient(108deg,
+      transparent 0 30%,
+      rgba(210, 239, 249, 0.045) 34%,
+      rgba(255, 255, 255, 0.24) 39%,
+      rgba(255, 255, 255, 0.075) 42%,
+      transparent 49% 100%);
+  background-position: var(--reflection-x) 50%;
+  background-size: 235% 100%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -1px 0 rgba(26, 50, 61, 0.035);
+  transition:
+    background-position 58ms linear,
+    opacity 90ms ease;
+}
+
+/* The specular lobe stays small and anisotropic, as it would on polished
+   acrylic, instead of painting an opaque white dot on every key. */
+.key-reflection::after {
+  position: absolute;
+  z-index: 1;
+  top: var(--reflection-y);
+  left: var(--reflection-x);
+  width: 48%;
+  height: 19%;
+  border-radius: 50%;
+  content: "";
+  opacity: var(--reflection-strength);
+  background:
+    radial-gradient(ellipse at 50% 50%,
+      rgba(255, 255, 255, 0.92) 0 4%,
+      rgba(255, 255, 255, 0.5) 13%,
+      rgba(228, 246, 252, 0.18) 34%,
+      rgba(205, 235, 246, 0.055) 53%,
+      transparent 74%);
+  filter: blur(0.32px);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--reflection-angle))
+    scaleX(1.08);
+  transform-origin: 50% 50%;
+  transition:
+    top 58ms linear,
+    left 58ms linear,
+    opacity 90ms ease,
+    transform 58ms linear;
+}
+
+.theme-dark .key-reflection,
+.piano-dark-page .key-reflection {
+  opacity: 0.76;
+  background:
+    linear-gradient(180deg,
+      rgba(237, 246, 255, 0.17) 0,
+      rgba(193, 219, 245, 0.05) 10%,
+      transparent 32%),
+    radial-gradient(ellipse 116% 48% at 50% -8%,
+      rgba(218, 235, 255, 0.19) 0,
+      rgba(119, 151, 191, 0.055) 45%,
+      transparent 72%),
+    linear-gradient(118deg,
+      rgba(121, 161, 207, 0.052) 0 15%,
+      transparent 29% 72%,
+      rgba(199, 218, 255, 0.025) 88% 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(238, 246, 255, 0.31),
+    inset 1px 0 0 rgba(174, 204, 239, 0.12),
+    inset -1px 0 0 rgba(0, 0, 0, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.23);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .crystal-key:hover .key-reflection {
+    opacity: 0.94;
+    filter: brightness(1.045);
+  }
+}
+
+.crystal-key:is(.is-active, .is-score-active) .key-reflection {
+  opacity: 0.92;
+  filter: brightness(1.08);
+  transform: translateY(1px) translateZ(5px);
+}
+
+.crystal-key:is(.is-active, .is-score-active) .key-reflection::after {
+  opacity: calc(var(--reflection-strength) + 0.14);
+  transform:
+    translate(-50%, -46%)
+    rotate(var(--reflection-angle))
+    scaleX(1.13)
+    scaleY(0.94);
+}
+
+.crystal-key:disabled .key-reflection {
+  opacity: 0.2;
+  filter: saturate(0.25);
+}
+
+html.piano-ios-fast-theme .key-reflection::after {
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key-reflection,
+  .key-reflection::before,
+  .key-reflection::after {
+    transition: none !important;
+  }
+}
+</style>
 
 
-
-<meta name="theme-color" content="#dffbf5">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="键盘钢琴">
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
 </head>
 <body>
   <div id="app">
@@ -7521,7 +7308,7 @@ html.score-surface-open .ambient {
         <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
         <strong data-piano-boot-title style="font-size:18px">正在启动键盘钢琴</strong>
         <small data-piano-boot-detail style="color:var(--muted);line-height:1.6">正在重建离线界面，请稍候…</small>
-        <button type="button" data-piano-reload onclick="location.reload()" style="margin-top:4px;padding:8px 15px;border:1px solid var(--line);border-radius:999px;color:inherit;background:rgba(255,255,255,.5);touch-action:manipulation;pointer-events:auto">重新加载</button>
+        <button type="button" onclick="location.reload()" style="margin-top:4px;padding:8px 15px;border:1px solid var(--line);border-radius:999px;color:inherit;background:rgba(255,255,255,.5)">重新加载</button>
       </section>
     </main>
   </div>
@@ -7714,6 +7501,7 @@ const currentVoices = new Map();
 const sustainedVoices = new Set();
 const heldKeys = new Set();
 const pointerKeys = new Map();
+const reflectionPointers = new Map();
 const pressTokens = new Map();
 const keyVisualAnimations = new WeakMap();
 const keyPulseTokens = new Map();
@@ -7827,6 +7615,7 @@ function keyMarkup(item) {
     <span class="key-cap">
       <span class="key-facets" aria-hidden="true"></span>
       <span class="key-inner-light" aria-hidden="true"></span>
+      <span class="key-reflection" aria-hidden="true"></span>
       <span class="key-crystal-rim" aria-hidden="true"></span>
       <span class="key-switch" aria-hidden="true"><i></i></span>
       <span class="key-letter">${item.key.toUpperCase()}</span>
@@ -7936,6 +7725,36 @@ function pianoHoldSustainSeconds() {
   return keyHoldSustainSeconds;
 }
 
+function pianoCorrectSevereStereoPhase(buffer) {
+  if (!buffer || Number(buffer.numberOfChannels) < 2
+    || typeof buffer.getChannelData !== "function") return false;
+  const left = buffer.getChannelData(0);
+  const right = buffer.getChannelData(1);
+  const frames = Math.min(
+    left.length,
+    right.length,
+    Math.max(1, Math.round((Number(buffer.sampleRate) || 48000) * 2.2)),
+  );
+  const stride = Math.max(1, Math.floor(frames / 28000));
+  let leftPower = 0;
+  let rightPower = 0;
+  let crossPower = 0;
+  for (let frame = 0; frame < frames; frame += stride) {
+    const leftValue = left[frame];
+    const rightValue = right[frame];
+    leftPower += leftValue * leftValue;
+    rightPower += rightValue * rightValue;
+    crossPower += leftValue * rightValue;
+  }
+  const correlation = crossPower / Math.sqrt(Math.max(1e-20, leftPower * rightPower));
+  if (!Number.isFinite(correlation) || correlation >= -0.55) return false;
+  // A few source notes (most audibly the C5 family) have near-opposite
+  // channel polarity. On phone speakers their piano body cancels and only the
+  // attack survives. Correct only severe cases and retain normal stereo width.
+  for (let frame = 0; frame < right.length; frame += 1) right[frame] *= -1;
+  return true;
+}
+
 function pianoSustainLoopWindow(buffer) {
   if (buffer && sustainLoopWindows.has(buffer)) return sustainLoopWindows.get(buffer);
   const duration = Number(buffer?.duration) || 0;
@@ -8018,7 +7837,7 @@ function pianoRangeAudioProfile(midi) {
   return { gain: 1, cutoff: 20000, releaseCutoff: 7200 };
 }
 
-function createWarmPianoImpulse(context, seconds = 2.2) {
+function createWarmPianoImpulse(context, seconds = 2.6) {
   const length = Math.max(1, Math.round(context.sampleRate * seconds));
   const impulse = context.createBuffer(2, length, context.sampleRate);
   const reflectionTimes = [0.017, 0.029, 0.043, 0.067, 0.097, 0.137, 0.191];
@@ -8034,8 +7853,8 @@ function createWarmPianoImpulse(context, seconds = 2.2) {
     const data = impulse.getChannelData(channel);
     for (let index = 0; index < length; index += 1) {
       const time = index / context.sampleRate;
-      const envelope = Math.exp(-time * 2.72) * Math.pow(Math.max(0, 1 - time / seconds), 1.48);
-      data[index] = random() * envelope * (0.125 - channel * 0.009);
+      const envelope = Math.exp(-time * 2.08) * Math.pow(Math.max(0, 1 - time / seconds), 1.28);
+      data[index] = random() * envelope * (0.138 - channel * 0.009);
     }
     reflectionTimes.forEach((time, index) => {
       const frame = Math.min(length - 1, Math.round((time + channel * 0.0017) * context.sampleRate));
@@ -8048,42 +7867,42 @@ function createWarmPianoImpulse(context, seconds = 2.2) {
 function connectWarmPianoChain(context, input, destination, options = {}) {
   const lowShelf = context.createBiquadFilter();
   lowShelf.type = "lowshelf";
-  lowShelf.frequency.value = 105;
-  lowShelf.gain.value = 0.8;
+  lowShelf.frequency.value = 118;
+  lowShelf.gain.value = 2.6;
 
   const soundboardBody = context.createBiquadFilter();
   soundboardBody.type = "peaking";
-  soundboardBody.frequency.value = 420;
-  soundboardBody.Q.value = 0.72;
-  soundboardBody.gain.value = 0.7;
+  soundboardBody.frequency.value = 390;
+  soundboardBody.Q.value = 0.68;
+  soundboardBody.gain.value = 2.15;
 
   const presenceDip = context.createBiquadFilter();
   presenceDip.type = "peaking";
-  presenceDip.frequency.value = 2680;
-  presenceDip.Q.value = 0.82;
-  presenceDip.gain.value = -0.7;
+  presenceDip.frequency.value = 2860;
+  presenceDip.Q.value = 0.78;
+  presenceDip.gain.value = -1.35;
 
   const silkShelf = context.createBiquadFilter();
   silkShelf.type = "highshelf";
   silkShelf.frequency.value = 6200;
-  // Preserve hammer detail instead of shelving away the transient. The tiny
-  // lift restores air lost to MP3 decoding without making the C5 brittle.
-  silkShelf.gain.value = 0.35;
+  // Keep the hammer readable without letting short notes collapse into a
+  // bright click. The soundboard and room now carry the perceived body.
+  silkShelf.gain.value = -0.65;
 
   const dry = context.createGain();
-  dry.gain.value = options.dry ?? 0.965;
+  dry.gain.value = options.dry ?? 0.94;
   const convolver = context.createConvolver();
   convolver.normalize = true;
-  convolver.buffer = createWarmPianoImpulse(context, options.roomSeconds ?? 2.2);
+  convolver.buffer = createWarmPianoImpulse(context, options.roomSeconds ?? 2.6);
   const wetHighPass = context.createBiquadFilter();
   wetHighPass.type = "highpass";
-  wetHighPass.frequency.value = 145;
+  wetHighPass.frequency.value = 95;
   wetHighPass.Q.value = 0.55;
   const wet = context.createGain();
-  wet.gain.value = options.wet ?? 0.105;
+  wet.gain.value = options.wet ?? 0.22;
 
   const sum = context.createGain();
-  sum.gain.value = options.output ?? 0.92;
+  sum.gain.value = options.output ?? 0.86;
   const compressor = context.createDynamicsCompressor();
   compressor.threshold.value = -7.5;
   compressor.knee.value = 18;
@@ -8362,6 +8181,7 @@ function loadBuffer(sample) {
     const context = ensureAudio();
     const bytes = await pianoSampleBytes(sample.file);
     const buffer = await context.decodeAudioData(bytes.slice(0));
+    if (/v(?:[1-9]|1[0-6])$/.test(sample.file)) pianoCorrectSevereStereoPhase(buffer);
     // Pre-compute the low-energy loop junction while decoding/warming up so a
     // real key press never pays for the waveform search on the audio path.
     if (/v(?:[1-9]|1[0-6])$/.test(sample.file)) pianoSustainLoopWindow(buffer);
@@ -8799,6 +8619,7 @@ function cancelInteractiveKeyboardState() {
   // A blur/page-hide can arrive before pointerup or while a sample is still
   // decoding. Treat it as cancellation, not as a musical key release: a late
   // decoder must not start an old tap after the user returns to the keyboard.
+  clearAllKeyReflections();
   pointerKeys.clear();
   heldKeys.clear();
   pressTokens.clear();
@@ -8880,15 +8701,9 @@ function updateTheme(persist = false) {
     shell.dataset.pianoTheme = nextTheme;
   }
   root.classList.remove("piano-dark-page", "piano-light-page");
-  root.classList.toggle(
-    "score-surface-dark",
-    root.classList.contains("score-surface-open") && darkMode,
-  );
   root.removeAttribute("data-piano-theme");
   root.style.colorScheme = "light";
-  const pageColor = darkMode
-    ? "#080a0f"
-    : (root.classList.contains("score-surface-open") ? "#ffffff" : "#e8edf2");
+  const pageColor = darkMode ? "#080a0f" : "#e8edf2";
   if (root.style.backgroundColor !== pageColor) root.style.backgroundColor = pageColor;
   if (document.body && document.body.style.backgroundColor !== pageColor) {
     document.body.style.backgroundColor = pageColor;
@@ -8953,6 +8768,53 @@ function bindActionButton(id, action) {
   });
 }
 
+function updateKeyReflection(button, event) {
+  if (!button || button.disabled) return;
+  const rect = button.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  const localX = Math.min(0.94, Math.max(0.06, (event.clientX - rect.left) / rect.width));
+  const localY = Math.min(0.88, Math.max(0.04, (event.clientY - rect.top) / rect.height));
+  // The cap is pitched toward the player, so screen-space movement maps into
+  // a shallower region on its top plane instead of placing the glint directly
+  // beneath the pointer.
+  const opticalX = 13 + localX * 74;
+  const opticalY = 7 + localY * 49;
+  const angle = -20 + localX * 14 + localY * 3;
+  const distance = Math.min(1, Math.hypot(localX - 0.5, (localY - 0.34) * 0.78));
+  const strength = 0.62 + (1 - distance) * 0.18;
+
+  const previous = reflectionPointers.get(event.pointerId);
+  if (previous && previous !== button) resetKeyReflection(previous);
+  reflectionPointers.set(event.pointerId, button);
+  button.style.setProperty("--reflection-x", `${opticalX.toFixed(2)}%`);
+  button.style.setProperty("--reflection-y", `${opticalY.toFixed(2)}%`);
+  button.style.setProperty("--reflection-angle", `${angle.toFixed(2)}deg`);
+  button.style.setProperty("--reflection-strength", strength.toFixed(3));
+}
+
+function resetKeyReflection(button) {
+  if (!button) return;
+  button.style.removeProperty("--reflection-x");
+  button.style.removeProperty("--reflection-y");
+  button.style.removeProperty("--reflection-angle");
+  button.style.removeProperty("--reflection-strength");
+}
+
+function clearPointerReflection(pointerId, fallbackButton = null) {
+  const button = reflectionPointers.get(pointerId) || fallbackButton;
+  reflectionPointers.delete(pointerId);
+  if (!button) return;
+  const stillTracked = [...reflectionPointers.values()].some((candidate) => candidate === button);
+  if (!stillTracked) resetKeyReflection(button);
+}
+
+function clearAllKeyReflections() {
+  const buttons = new Set(reflectionPointers.values());
+  reflectionPointers.clear();
+  buttons.forEach(resetKeyReflection);
+}
+
 function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Tab") document.documentElement.classList.add("keyboard-navigation");
@@ -8964,6 +8826,7 @@ function bindEvents() {
   document.querySelectorAll(".crystal-key").forEach((button) => {
     button.addEventListener("pointerdown", (event) => {
       event.preventDefault();
+      updateKeyReflection(button, event);
       // WKWebView focuses touched buttons even when the tap highlight is
       // disabled. Blur that synthetic focus so no white ring remains behind.
       button.blur();
@@ -8979,17 +8842,26 @@ function bindEvents() {
       pressKey(key, pianoPointerPerformanceVelocity(event));
     });
     button.addEventListener("pointermove", (event) => {
+      const hit = typeof document.elementFromPoint === "function"
+        ? document.elementFromPoint(event.clientX, event.clientY)
+        : null;
+      const target = hit instanceof Element ? hit.closest(".crystal-key") : button;
+      if (target && !target.disabled) updateKeyReflection(target, event);
+      else clearPointerReflection(event.pointerId);
+
       const previousKey = pointerKeys.get(event.pointerId);
-      if (!previousKey || typeof document.elementFromPoint !== "function") return;
-      const hit = document.elementFromPoint(event.clientX, event.clientY);
-      const target = hit instanceof Element ? hit.closest(".crystal-key") : null;
+      if (!previousKey || !target) return;
       const nextKey = target?.dataset?.key || "";
       if (!nextKey || nextKey === previousKey || target.disabled) return;
       releaseKey(previousKey);
       pointerKeys.set(event.pointerId, nextKey);
       pressKey(nextKey, pianoPointerPerformanceVelocity(event));
     });
+    button.addEventListener("pointerleave", (event) => {
+      if (!pointerKeys.has(event.pointerId)) clearPointerReflection(event.pointerId, button);
+    });
     button.addEventListener("lostpointercapture", (event) => {
+      clearPointerReflection(event.pointerId, button);
       const key = pointerKeys.get(event.pointerId);
       if (!key) return;
       pointerKeys.delete(event.pointerId);
@@ -9004,12 +8876,14 @@ function bindEvents() {
   });
 
   window.addEventListener("pointerup", (event) => {
+    clearPointerReflection(event.pointerId);
     const key = pointerKeys.get(event.pointerId);
     if (!key) return;
     pointerKeys.delete(event.pointerId);
     releaseKey(key);
   });
   window.addEventListener("pointercancel", (event) => {
+    clearPointerReflection(event.pointerId);
     const key = pointerKeys.get(event.pointerId);
     if (!key) return;
     pointerKeys.delete(event.pointerId);
@@ -9095,7 +8969,7 @@ function bindEvents() {
     // The score studio is a normal scrollable application surface. Never
     // cancel its touch defaults here: doing so blocks momentum scrolling,
     // native form controls and click synthesis on iOS/WKWebView.
-    if (target?.closest('input[type="range"], select, .keyboard-key-control, .score-studio, [data-piano-reload]')) return;
+    if (target?.closest('input[type="range"], select, .keyboard-key-control, .score-studio')) return;
     if (event.cancelable) event.preventDefault();
     window.getSelection()?.removeAllRanges();
   };
@@ -9155,15 +9029,17 @@ init();
 
 const SCORE_KEY_OPTIONS = JIANPU_KEY_OPTIONS;
 const SCORE_DEGREE_STEPS = [0, 0, 2, 4, 5, 7, 9, 11];
+const SCORE_MIDDLE_C_MIDI = 60;
 const SCORE_MAX_PAGES = 48;
-const SCORE_UI_STORAGE_KEY = "keyboard-piano-score-workspace-v6";
-const SCORE_UI_INTERFACE_VERSION = 7;
+const SCORE_UI_STORAGE_KEY = "keyboard-piano-score-workspace-v7";
+const SCORE_UI_INTERFACE_VERSION = 8;
 const SCORE_DATABASE_NAME = "keyboard-piano-offline-score-v4";
 const SCORE_DATABASE_STORE = "workspace";
-const SCORE_RENDERED_TRACK_CACHE_KEY = "rendered-track-cache-v4-48k";
-const SCORE_ACCOMPANIMENT_GAIN = 0.48;
-const SCORE_CHORD_TONE_GAIN = 0.22;
+const SCORE_RENDERED_TRACK_CACHE_KEY = "rendered-track-cache-v7-natural-tail";
+const SCORE_ACCOMPANIMENT_GAIN = 0.68;
+const SCORE_CHORD_TONE_GAIN = 0.38;
 const SCORE_KEY_TRAVEL_SECONDS = 0.034;
+const SCORE_RENDER_TAIL_SECONDS = 2.8;
 const SCORE_STATE = {
   pages: [],
   worker: null,
@@ -9209,9 +9085,6 @@ const SCORE_STATE = {
   liveStartSeconds: 0,
   liveNextEventIndex: 0,
   currentVisualIndex: -1,
-  visualEventNodes: new Map(),
-  activeVisualChips: new Set(),
-  deferredVisualIndices: null,
   lastVisualFrame: 0,
   sampleWarmupId: 0,
   meter: null,
@@ -9230,8 +9103,6 @@ const SCORE_STATE = {
   activeKeyboardEventSignatures: new Map(),
   lastMediaPositionUpdate: 0,
   studioAnimation: null,
-  parkedStudioRect: null,
-  parkedDialogAppearance: null,
 };
 
 let SCORE_DATABASE_PROMISE = null;
@@ -9423,12 +9294,12 @@ function scoreStudioMarkup() {
         </div>
         <div class="score-header-actions">
           <input id="score-file" class="score-file-input" type="file" accept=".kpiano,application/json,text/plain,image/jpeg,image/png,image/webp,application/pdf" multiple>
-          <button id="score-choose-files" class="score-inline-button" type="button"><span aria-hidden="true">⌁&#xFE0E;</span>导入谱面</button>
+          <button id="score-choose-files" class="score-inline-button" type="button"><span aria-hidden="true">⌁</span>导入谱面</button>
           <button id="score-recognize" class="score-inline-button score-primary-button" type="button" disabled>开始识谱</button>
           <button id="score-cancel-recognition" class="score-inline-button" type="button" hidden>停止识别</button>
           <span id="score-confidence" class="score-confidence">等待导入</span>
-          <button id="score-export" class="score-inline-button score-export-button" type="button" disabled aria-label="将识谱结果作为 TXT 文件分享或保存"><span aria-hidden="true">↗&#xFE0E;</span>分享 TXT</button>
-          <button id="score-close" class="score-close-button" type="button" aria-label="关闭识谱界面"><span aria-hidden="true">×&#xFE0E;</span></button>
+          <button id="score-export" class="score-inline-button score-export-button" type="button" disabled aria-label="将识谱结果作为 TXT 文件分享或保存"><span aria-hidden="true">↗</span>分享 TXT</button>
+          <button id="score-close" class="score-close-button" type="button" aria-label="关闭识谱界面"><span aria-hidden="true">×</span></button>
         </div>
       </header>
 
@@ -9456,8 +9327,8 @@ function scoreStudioMarkup() {
           </div>
 
           <div class="score-transport">
-            <button id="score-play" class="score-play-button" type="button" disabled><span aria-hidden="true">▶&#xFE0E;</span><strong>播放</strong></button>
-            <button id="score-stop" class="score-stop-button" type="button" disabled aria-label="停止播放">■&#xFE0E;</button>
+            <button id="score-play" class="score-play-button" type="button" disabled><span aria-hidden="true">▶</span><strong>播放</strong></button>
+            <button id="score-stop" class="score-stop-button" type="button" disabled aria-label="停止播放">■</button>
             <label class="score-timeline"><input id="score-timeline" type="range" min="0" max="1" value="0" step="0.001" aria-label="播放进度"><span><output id="score-current-time">00:00</output><output id="score-total-time">00:00</output></span></label>
             <button id="score-toggle-workbench" class="score-inline-button score-workbench-toggle" type="button" aria-controls="score-workbench" aria-expanded="false">校对</button>
           </div>
@@ -9473,7 +9344,7 @@ function scoreStudioMarkup() {
 
               <section class="score-edit-panel" aria-label="文本校对">
                 <label class="score-editor-label" for="score-editor"><span>文本校对</span></label>
-                <textarea id="score-editor" class="score-textarea score-field" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="识别结果会出现在这里；V 声部严格按谱面从上到下编号：&#10;[V1:lead] [T80] [M4/4] 1 2 3 4 |&#10;[V2:hand] 5, - 1 - |&#10;[V3:hand] 1, - 5, - |&#10;和弦辅助轨使用 [C1:chord]，不占用 V 编号"></textarea>
+                <textarea id="score-editor" class="score-textarea score-field" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="识别结果会出现在这里；V 声部严格按谱面从上到下编号：&#10;[V1:lead] [T80] [M4/4] 1 2 [STACC] 3 [ARP] 4 |&#10;[V2:hand] 5, - 1 - |&#10;[V3:hand] 1, - 5, - |&#10;所属 V1 的和弦辅助轨写作 [C1:chord-v1]，不占用 V 编号"></textarea>
               </section>
             </div>
           </details>
@@ -9934,10 +9805,10 @@ async function scorePdfFilePages(file) {
         const normalizedRunText = Array.from(item.str).map((character) => {
           const codePoint = character.codePointAt(0);
           if (codePoint === 1) return "♩";
-          // EOPScore reuses legacy slot 3 for both a true sharp and each
-          // segment of a tall arpeggio wave. The glyph boxes are distinct:
-          // a sharp is numeral-sized; arpeggio segments are roughly 20%
-          // taller and repeat vertically at one x coordinate.
+          // EOPScore reuses legacy slot 3 for sharps and performance marks.
+          // Keep tall marks out of the plain-text metadata; the character
+          // geometry below separates wide staccato wedges from narrow
+          // arpeggio-wave segments.
           if (codePoint === 3) return fontHeight <= calibratedDigitHeight * 1.12 ? "#" : "";
           if (codePoint === 4) return "♮";
           return character;
@@ -9958,7 +9829,8 @@ async function scorePdfFilePages(file) {
           && characters.every((character) => character === "." || character === "·");
         const stackedArpeggioRun = characters.length > 1
           && characters.every((character) => character.codePointAt(0) === 3)
-          && fontHeight > calibratedDigitHeight * 1.12;
+          && fontHeight > calibratedDigitHeight * 1.12
+          && unitWidth < calibratedDigitHeight * 0.5;
         const scoreNumberRun = characters.every((character) => /[0-7\s]/.test(character))
           && characters.some((character) => /[0-7]/.test(character));
         const fontRatios = digitWidthRatiosByFont.get(item.fontName) || [];
@@ -9981,19 +9853,29 @@ async function scorePdfFilePages(file) {
           // EOPScore stores sharp/natural signs in its legacy custom slots.
           // PDF.js correctly preserves the glyph code but exposes it as a
           // control character rather than "#"/"♮".
-          const legacyArpeggio = codePoint === 3 && fontHeight > calibratedDigitHeight * 1.12;
-          const normalizedCharacter = legacyArpeggio
-            ? "arp"
+          const legacyTallMark = codePoint === 3 && fontHeight > calibratedDigitHeight * 1.12;
+          // An EOP hollow staccato wedge is almost a numeral wide and is
+          // often painted several times at the same coordinate. A vertical
+          // arpeggio segment is narrow. Treating both as arpeggios staggered
+          // ordinary block chords and was the largest source of wrong
+          // multi-finger playback.
+          const legacyStaccato = legacyTallMark && unitWidth >= calibratedDigitHeight * 0.5;
+          const legacyArpeggio = legacyTallMark && !legacyStaccato;
+          const normalizedCharacter = legacyStaccato
+            ? "staccato"
+            : (legacyArpeggio ? "arp"
             : (codePoint === 3 || character === "♯" || character === "＃"
               ? "#"
             : (codePoint === 4 || character === "♮"
               ? "n"
-              : (character === "♭" ? "b" : (character === "𝄪" ? "##" : (character === "𝄫" ? "bb" : character)))));
+              : (character === "♭" ? "b" : (character === "𝄪" ? "##" : (character === "𝄫" ? "bb" : character))))));
           pdfTextItems.push({
             text: normalizedCharacter,
             rawText: character,
             codePoint,
-            symbolRole: legacyArpeggio ? "arpeggio" : (codePoint === 3 || codePoint === 4 ? "accidental" : ""),
+            symbolRole: legacyStaccato
+              ? "staccato"
+              : (legacyArpeggio ? "arpeggio" : (codePoint === 3 || codePoint === 4 ? "accidental" : "")),
             // PDF.js may combine vertically stacked octave dots into one
             // horizontal text item. EOP places adjacent dots one sixth of the
             // dot-font height apart, at the same x coordinate.
@@ -10636,6 +10518,7 @@ function scoreRecognitionItems(result, prepared, source, imageHeight = prepared.
 function scorePrepareNativePdfItems(page, prepared) {
   if (!page?.hasNativeScoreText || !Array.isArray(page.pdfTextItems)) return null;
   const relevant = page.pdfTextItems.filter((item) => item.symbolRole === "arpeggio"
+    || item.symbolRole === "staccato"
     || /[0-7#＃♯b♭♮n𝄪𝄫.·:\-]/.test(item.text)).map((item) => ({
     ...item,
     text: String(item.text || "")
@@ -11929,6 +11812,71 @@ function scoreNativePdfDotAssignments(items, numberItems, dominantHeight) {
   return { counts, assignedDots, dots };
 }
 
+function scoreNativePdfArticulationAssignments(items, numberItems, dominantHeight) {
+  const rawMarks = items.filter((item) => item.symbolRole === "staccato");
+  const marks = [];
+  // EOP paints one hollow wedge with four nearly coincident glyphs. Collapse
+  // that overprint before assigning the mark to a note.
+  for (const mark of rawMarks.sort((left, right) => left.y - right.y || left.x - right.x)) {
+    const centerX = scoreNativePdfCenterX(mark);
+    const centerY = mark.y + mark.height / 2;
+    const duplicate = marks.some((candidate) => (
+      Math.abs(scoreNativePdfCenterX(candidate) - centerX) <= dominantHeight * 0.08
+      && Math.abs(candidate.y + candidate.height / 2 - centerY) <= dominantHeight * 0.08
+    ));
+    if (!duplicate) marks.push(mark);
+  }
+
+  const notes = new Set();
+  for (const mark of marks) {
+    const markX = scoreNativePdfCenterX(mark);
+    const markY = mark.y + mark.height / 2;
+    const digits = numberItems.filter((digit) => digit.text !== "0"
+      && digit.height >= dominantHeight * 0.78
+      && digit.height <= dominantHeight * 1.24);
+    // EOP's hollow inverted triangle is centred above the affected numeral;
+    // its text box is unusually tall, so comparing baselines or looking for
+    // a note to the right attaches it to the wrong beat. Anchor it to the
+    // nearest full-size numeral below the same horizontal centre.
+    const target = digits
+      .map((digit) => {
+        const dx = (scoreNativePdfCenterX(digit) - markX) / dominantHeight;
+        const dy = (digit.y + digit.height / 2 - markY) / dominantHeight;
+        return {
+          digit,
+          dx,
+          dy,
+          cost: Math.abs(dx) * 0.8 + Math.abs(dy - 2.02) * 0.42,
+        };
+      }).filter((candidate) => Math.abs(candidate.dx) <= 0.52
+        && candidate.dy >= 1.05
+        && candidate.dy <= 3.05)
+      .sort((left, right) => left.cost - right.cost
+        || Math.abs(left.dy) - Math.abs(right.dy))[0]?.digit;
+    if (!target) continue;
+    notes.add(target);
+
+    // A staccato mark above a vertical chord applies to every simultaneously
+    // struck tone in that contiguous stack. Grow downward one numeral at a
+    // time, stopping before another printed part or an unrelated system.
+    let previousCenter = target.y + target.height / 2;
+    const alignedBelow = digits.filter((digit) => digit !== target
+      && Math.abs(scoreNativePdfCenterX(digit) - scoreNativePdfCenterX(target))
+        <= dominantHeight * 0.42
+      && digit.y + digit.height / 2 > previousCenter)
+      .sort((left, right) => left.y - right.y);
+    for (const digit of alignedBelow) {
+      const center = digit.y + digit.height / 2;
+      const gap = (center - previousCenter) / dominantHeight;
+      if (gap < 0.34) continue;
+      if (gap > 1.78) break;
+      notes.add(digit);
+      previousCenter = center;
+    }
+  }
+  return { notes, markCount: marks.length, assignedCount: notes.size };
+}
+
 function scoreNormalizeAccidental(raw) {
   const normalized = String(raw || "").trim()
     .replaceAll("＃", "#")
@@ -11944,7 +11892,73 @@ function scoreAccidentalSemitones(accidental) {
   return ({ "##": 2, "#": 1, n: 0, b: -1, bb: -2 })[accidental] ?? 0;
 }
 
-function scoreNativePdfAccidental(items, digit, dominantHeight) {
+function scoreNativePdfClassifyLegacyAccidental(prepared, item, digit, dominantHeight) {
+  if (!prepared || ![3, 4].includes(item?.codePoint)) return "";
+  const binary = prepared.darkBinary || prepared.binary;
+  if (!(binary instanceof Uint8Array)) return "";
+  const height = Math.max(1, dominantHeight);
+  const components = scoreConnectedComponents(binary, prepared.width, prepared.height, {
+    left: item.x - height * 0.22,
+    right: Math.min(
+      digit.x - height * 0.04,
+      item.x + height * 0.72,
+    ),
+    top: item.y - height * 0.08,
+    bottom: item.y + item.height + height * 0.12,
+  }).filter((component) => component.pixels >= 2);
+  if (!components.length) return "";
+  const component = {
+    x: Math.min(...components.map((entry) => entry.x)),
+    y: Math.min(...components.map((entry) => entry.y)),
+  };
+  component.width = Math.max(...components.map((entry) => entry.x + entry.width)) - component.x;
+  component.height = Math.max(...components.map((entry) => entry.y + entry.height)) - component.y;
+  component.pixels = components.reduce((sum, entry) => sum + entry.pixels, 0);
+  if (component.width < 2 || component.height < 3) return "";
+
+  const verticalColumns = [];
+  for (let x = component.x; x < component.x + component.width; x += 1) {
+    let longest = 0;
+    let run = 0;
+    for (let y = component.y; y < component.y + component.height; y += 1) {
+      if (binary[y * prepared.width + x]) {
+        run += 1;
+        longest = Math.max(longest, run);
+      } else run = 0;
+    }
+    if (longest >= component.height * 0.4) verticalColumns.push(x);
+  }
+  let verticalBands = 0;
+  for (let index = 0; index < verticalColumns.length; index += 1) {
+    if (!index || verticalColumns[index] - verticalColumns[index - 1] > 1) verticalBands += 1;
+  }
+
+  const horizontalRows = [];
+  for (let y = component.y; y < component.y + component.height; y += 1) {
+    let longest = 0;
+    let run = 0;
+    for (let x = component.x; x < component.x + component.width; x += 1) {
+      if (binary[y * prepared.width + x]) {
+        run += 1;
+        longest = Math.max(longest, run);
+      } else run = 0;
+    }
+    if (longest >= component.width * 0.62) horizontalRows.push(y);
+  }
+  let horizontalBands = 0;
+  for (let index = 0; index < horizontalRows.length; index += 1) {
+    if (!index || horizontalRows[index] - horizontalRows[index - 1] > 1) horizontalBands += 1;
+  }
+  const topology = scoreGlyphTopology(binary, prepared.width, component);
+  // Flat: one long stem and one bowl. Sharp: two stems crossed by two bars.
+  // Natural also has two stems, but its offset connectors normally leave no
+  // closed grid cell and do not form two full-width horizontal bands.
+  if (verticalBands <= 1) return "b";
+  if (topology.holes >= 1 || horizontalBands >= 2) return "#";
+  return "n";
+}
+
+function scoreNativePdfAccidental(items, digit, dominantHeight, prepared = null) {
   const embedded = String(digit?.text || "")
     .replaceAll("＃", "#")
     .replaceAll("♯", "#")
@@ -11961,8 +11975,14 @@ function scoreNativePdfAccidental(items, digit, dominantHeight) {
     && item.height <= height * 1.4);
   const assignments = [];
   for (const accidentalItem of items) {
-    if (accidentalItem.symbolRole === "arpeggio") continue;
-    const accidental = scoreNormalizeAccidental(accidentalItem.text);
+    if (accidentalItem.symbolRole === "arpeggio"
+      || accidentalItem.symbolRole === "staccato") continue;
+    const accidental = scoreNativePdfClassifyLegacyAccidental(
+      prepared,
+      accidentalItem,
+      digit,
+      height,
+    ) || scoreNormalizeAccidental(accidentalItem.text);
     if (!accidental) continue;
     if (accidentalItem.height < height * 0.68 || accidentalItem.height > height * 1.13) continue;
     const candidates = digits.map((candidate) => {
@@ -11981,25 +12001,31 @@ function scoreNativePdfAccidental(items, digit, dominantHeight) {
       && candidate.vertical <= height * 1.18)
       .sort((left, right) => left.score - right.score || left.gap - right.gap);
     if (candidates[0]?.candidate === digit) {
-      assignments.push({ accidental, x: accidentalItem.x, gap: candidates[0].gap });
+      assignments.push({
+        accidental,
+        x: accidentalItem.x,
+        y: accidentalItem.y + accidentalItem.height / 2,
+        gap: candidates[0].gap,
+      });
     }
   }
   assignments.sort((left, right) => left.x - right.x || left.gap - right.gap);
   if (assignments.length >= 2
     && assignments[0].accidental === assignments[1].accidental
     && assignments[1].x - assignments[0].x <= height * 0.48
+    && Math.abs(assignments[1].y - assignments[0].y) <= height * 0.24
     && (assignments[0].accidental === "#" || assignments[0].accidental === "b")) {
     return assignments[0].accidental.repeat(2);
   }
   return assignments[0]?.accidental || "";
 }
 
-function scoreNativePdfPitch(items, digit, dotData, dominantHeight) {
+function scoreNativePdfPitch(items, digit, dotData, dominantHeight, prepared = null) {
   const octave = dotData.counts.get(digit) || { above: [], below: [] };
   const upper = octave.above.length ? "'".repeat(Math.min(6, octave.above.length)) : "";
   const lower = !upper && octave.below.length ? ",".repeat(Math.min(6, octave.below.length)) : "";
   const numeral = String(digit.text || "").match(/[0-7]/)?.[0] || "0";
-  return scoreNativePdfAccidental(items, digit, dominantHeight) + numeral + upper + lower;
+  return scoreNativePdfAccidental(items, digit, dominantHeight, prepared) + numeral + upper + lower;
 }
 
 function scoreNativePdfAugmentationDots(digit, dotData, dominantHeight) {
@@ -12129,13 +12155,26 @@ function scoreNativePdfArpeggioMarks(nativePdf, row, notes, height) {
   return markers;
 }
 
-function scoreNativePdfBuildRow(nativePdf, prepared, row, dotData, referenceTone) {
+function scoreNativePdfTokensText(tokens) {
+  return (tokens || []).flatMap((token) => (
+    token.note && token.staccato ? ["[STACC]", token.text] : [token.text]
+  )).join(" ");
+}
+
+function scoreNativePdfBuildRow(
+  nativePdf,
+  prepared,
+  row,
+  dotData,
+  articulationData,
+  referenceTone,
+) {
   const binary = prepared.darkBinary || prepared.binary;
   const height = row.medianHeight;
   const notes = row.items.sort((left, right) => left.x - right.x).map((item) => {
     const underlines = scoreDetectUnderlines(binary, prepared.width, prepared.height, item);
     const augmentationDots = scoreNativePdfAugmentationDots(item, dotData, height);
-    const pitch = scoreNativePdfPitch(nativePdf.items, item, dotData, height);
+    const pitch = scoreNativePdfPitch(nativePdf.items, item, dotData, height, prepared);
     const tone = scoreNativePdfInkTone(prepared.gray, prepared.width, prepared.height, item);
     const grayContinuation = item.text !== "0"
       && tone < 215
@@ -12149,6 +12188,7 @@ function scoreNativePdfBuildRow(nativePdf, prepared, row, dotData, referenceTone
       width: item.width,
       duration: scoreNativePdfNoteDuration(underlines, augmentationDots),
       note: true,
+      staccato: articulationData.notes.has(item),
       grayContinuation,
       sourceItem: item,
     };
@@ -12201,7 +12241,7 @@ function scoreNativePdfBuildRow(nativePdf, prepared, row, dotData, referenceTone
     notes,
     arpeggios,
     tokens: combined,
-    text: combined.map((item) => item.text).join(" "),
+    text: scoreNativePdfTokensText(combined),
   };
 }
 
@@ -12252,7 +12292,131 @@ function scoreNativePdfAttachArpeggios(nativePdf, rows, height) {
     target.row.arpeggios.push(marker);
     target.row.tokens.push(marker);
     target.row.tokens.sort((left, right) => left.x - right.x || (left.arpeggio ? -1 : 1));
-    target.row.text = target.row.tokens.map((token) => token.text).join(" ");
+    target.row.text = scoreNativePdfTokensText(target.row.tokens);
+    attached += 1;
+  }
+  return attached;
+}
+
+function scoreNativePdfAttachDynamics(nativePdf, rows, height) {
+  const levels = /^(ppp|pp|p|mp|mf|f|ff|fff|sfz)$/i;
+  const marks = [];
+  for (const item of nativePdf.allItems || []) {
+    const level = String(item.text || "").replace(/\s+/g, "").match(levels)?.[1]?.toUpperCase();
+    if (!level) continue;
+    const centerX = scoreNativePdfCenterX(item);
+    const centerY = item.y + item.height / 2;
+    const duplicate = marks.some((mark) => mark.level === level
+      && Math.abs(mark.x - centerX) <= height * 0.25
+      && Math.abs(mark.y - centerY) <= height * 0.25);
+    if (!duplicate) marks.push({ item, level, x: centerX, y: centerY });
+  }
+
+  let attached = 0;
+  for (const mark of marks) {
+    const target = rows.map((row) => ({
+      row,
+      vertical: (mark.y - row.center) / height,
+      horizontal: mark.x < row.left
+        ? (row.left - mark.x) / height
+        : (mark.x > row.right ? (mark.x - row.right) / height : 0),
+    })).filter((candidate) => candidate.vertical >= 0.35
+      && candidate.vertical <= 3.4
+      && candidate.horizontal <= 1.2)
+      .sort((left, right) => left.vertical - right.vertical
+        || left.horizontal - right.horizontal)[0]?.row;
+    if (!target) continue;
+    const anchor = target.notes.map((note) => ({
+      note,
+      distance: Math.abs(note.x - mark.x),
+    })).filter((candidate) => candidate.distance <= height * 2.2)
+      .sort((left, right) => left.distance - right.distance)[0]?.note;
+    const marker = {
+      text: `[${mark.level}]`,
+      x: anchor ? anchor.x - height * 0.16 : mark.x,
+      duration: 0,
+      note: false,
+      dynamic: true,
+      exact: true,
+    };
+    target.tokens.push(marker);
+    target.tokens.sort((left, right) => left.x - right.x
+      || (left.dynamic ? -1 : (right.dynamic ? 1 : 0)));
+    target.text = scoreNativePdfTokensText(target.tokens);
+    attached += 1;
+  }
+  return attached;
+}
+
+function scoreNativePdfAttachRasterArpeggios(prepared, chordEvents, height) {
+  const binary = prepared.darkBinary || prepared.binary;
+  const stacks = new Map();
+  for (const event of chordEvents) {
+    if (event.kind !== "chord" || !event.parent) continue;
+    const stack = stacks.get(event.parent) || [];
+    stack.push(event);
+    stacks.set(event.parent, stack);
+  }
+
+  let attached = 0;
+  for (const [parent, stack] of stacks.entries()) {
+    if (parent.arpeggioRoot || !parent.row || !parent.token) continue;
+    const tones = [
+      { x: parent.x, top: parent.top },
+      ...stack.map((event) => ({ x: event.x, top: event.top })),
+    ].sort((left, right) => left.top - right.top);
+    if (tones.length < 2) continue;
+    const top = tones[0].top;
+    const bottom = tones.at(-1).top + height;
+    const span = bottom - top;
+    if (span < height * 1.55) continue;
+
+    // Most PDF generators draw the Jianpu arpeggio as a vector-only vertical
+    // wave, so it never appears in the native text layer. Look only in the
+    // narrow corridor immediately left of a confirmed vertical note stack.
+    // Requiring the component to cover most of that stack rejects barlines,
+    // octave dots, braces and digit fragments.
+    const components = scoreConnectedComponents(binary, prepared.width, prepared.height, {
+      left: parent.x - height * 1.2,
+      right: parent.x - height * 0.08,
+      top: top - height * 0.24,
+      bottom: bottom + height * 0.24,
+    });
+    const wave = components.filter((component) => {
+      const rightEdge = component.x + component.width;
+      const horizontalGap = parent.x - rightEdge;
+      const verticalCoverage = component.height / Math.max(1, span);
+      const density = component.pixels / Math.max(1, component.width * component.height);
+      return component.height >= Math.max(height * 1.35, span * 0.68)
+        && component.height <= span + height * 0.5
+        && component.width >= Math.max(2, height * 0.08)
+        && component.width <= height * 0.62
+        && component.height / Math.max(1, component.width) >= 3.6
+        && horizontalGap >= height * 0.02
+        && horizontalGap <= height * 0.78
+        && verticalCoverage >= 0.68
+        && density >= 0.12;
+    }).sort((left, right) => {
+      const leftGap = parent.x - (left.x + left.width);
+      const rightGap = parent.x - (right.x + right.width);
+      return leftGap - rightGap || right.height - left.height;
+    })[0];
+    if (!wave) continue;
+
+    const marker = {
+      text: "[ARP]",
+      x: parent.x - height * 0.16,
+      duration: 0,
+      note: false,
+      arpeggio: true,
+      exact: true,
+      rasterDetected: true,
+    };
+    parent.arpeggioRoot = true;
+    parent.row.arpeggios.push(marker);
+    parent.row.tokens.push(marker);
+    parent.row.tokens.sort((left, right) => left.x - right.x || (left.arpeggio ? -1 : 1));
+    parent.row.text = scoreNativePdfTokensText(parent.row.tokens);
     attached += 1;
   }
   return attached;
@@ -12292,6 +12456,7 @@ function scoreNativePdfTimeline(row) {
       token,
       row,
       arpeggioRoot: pendingArpeggio,
+      staccato: Boolean(token.staccato),
     };
     pendingArpeggio = false;
     events.push(event);
@@ -12343,7 +12508,7 @@ function scoreNativePdfSynchronizeBars(...rows) {
       synchronized: true,
     });
     row.tokens.sort((left, right) => left.x - right.x);
-    row.text = row.tokens.map((token) => token.text).join(" ");
+    row.text = scoreNativePdfTokensText(row.tokens);
   }
 }
 
@@ -12400,6 +12565,7 @@ function scoreNativePdfExtraLaneText(lane, measureDurations) {
       if (event.start > cursor + 1e-7) {
         tokens.push(...scoreNativePdfDurationTokens("0", event.start - cursor));
       }
+      if (event.staccato) tokens.push("[STACC]");
       tokens.push(...scoreNativePdfDurationTokens(event.pitch, event.duration));
       cursor = event.start + event.duration;
       eventIndex += 1;
@@ -12419,6 +12585,7 @@ function scoreNativePdfExtraEvents(
   upper,
   lower,
   dotData,
+  articulationData,
   allNumberItems,
   excludedMainItems = null,
 ) {
@@ -12472,18 +12639,20 @@ function scoreNativePdfExtraEvents(
       if (gap < 0.34) continue;
       if (gap > 1.75) break;
       events.push({
-        pitch: scoreNativePdfPitch(nativePdf.items, candidate.digit, dotData, height),
+        pitch: scoreNativePdfPitch(nativePdf.items, candidate.digit, dotData, height, prepared),
         start: parent.start,
         duration: parent.duration,
         x: candidate.x,
         top: candidate.digit.y,
         kind: "chord",
+        staccato: Boolean(parent.staccato || articulationData.notes.has(candidate.digit)),
         parent,
       });
       previousTop = candidate.digit.y;
     }
   }
   const chordToneCount = events.length;
+  const rasterArpeggioCount = scoreNativePdfAttachRasterArpeggios(prepared, events, height);
 
   // Small, underlined digits immediately before a full-size note are grace
   // notes.  They occupy their printed binary duration in an auxiliary lane
@@ -12516,12 +12685,13 @@ function scoreNativePdfExtraEvents(
     let start = Math.max(0, parent.start - durations.reduce((sum, value) => sum + value, 0));
     group.forEach((candidate, index) => {
       events.push({
-        pitch: scoreNativePdfPitch(nativePdf.items, candidate.item, dotData, height),
+        pitch: scoreNativePdfPitch(nativePdf.items, candidate.item, dotData, height, prepared),
         start,
         duration: durations[index],
         x: candidate.x,
         top: candidate.item.y,
         kind: "grace",
+        staccato: articulationData.notes.has(candidate.item),
         parent,
       });
       start += durations[index];
@@ -12530,6 +12700,7 @@ function scoreNativePdfExtraEvents(
   return {
     events: events.sort((left, right) => left.start - right.start || left.top - right.top || left.x - right.x),
     chordToneCount,
+    rasterArpeggioCount,
     measureDurations: upperTimeline.measures.length >= lowerTimeline.measures.length
       ? upperTimeline.measures
       : lowerTimeline.measures,
@@ -12558,8 +12729,12 @@ function scoreNativePdfOrderPlainStacksTopToBottom(extraEvents) {
     const token = parent.token;
     if (!token || !parent.pitch) continue;
     const verticalNotes = [
-      { pitch: parent.pitch, top: parent.top },
-      ...stack.map((event) => ({ pitch: event.pitch, top: event.top })),
+      { pitch: parent.pitch, top: parent.top, staccato: Boolean(parent.staccato) },
+      ...stack.map((event) => ({
+        pitch: event.pitch,
+        top: event.top,
+        staccato: Boolean(event.staccato),
+      })),
     ].filter((entry) => entry.pitch)
       .sort((left, right) => left.top - right.top);
     if (verticalNotes.length !== stack.length + 1) continue;
@@ -12569,11 +12744,14 @@ function scoreNativePdfOrderPlainStacksTopToBottom(extraEvents) {
     // C2... from top to bottom. A marked arpeggio is deliberately excluded so
     // its existing written order and sweep remain untouched.
     parent.pitch = verticalNotes[0].pitch;
+    parent.staccato = verticalNotes[0].staccato;
     token.pitch = verticalNotes[0].pitch;
+    token.staccato = verticalNotes[0].staccato;
     token.text = scoreNativePdfReplaceTokenPitch(token.text, verticalNotes[0].pitch);
     const orderedEvents = [...stack].sort((left, right) => left.top - right.top);
     orderedEvents.forEach((event, index) => {
       event.pitch = verticalNotes[index + 1].pitch;
+      event.staccato = verticalNotes[index + 1].staccato;
     });
     ordered += 1;
   }
@@ -12632,6 +12810,9 @@ function scoreNativePdfLabeledMainRows(nativePdf, available, prepared, dominantH
     const next = labels[systemIndex + 1];
     const start = labelCenter - dominantHeight * 0.8;
     const end = next
+      // The next printed measure number is a top anchor, not a midpoint.
+      // Four-hand systems can occupy almost the entire space between two
+      // labels, so midpoint slicing silently discarded V3 and V4.
       ? next.y + next.height / 2 - dominantHeight * 0.8
       : Math.max(prepared.height, ...available.map((row) => row.center + dominantHeight));
     const bandRows = available.filter((row) => row.center >= start && row.center < end);
@@ -12640,8 +12821,19 @@ function scoreNativePdfLabeledMainRows(nativePdf, available, prepared, dominantH
     const maximumSpan = Math.max(...bandRows.map((row) => row.right - row.left));
     const minimumCount = Math.max(2, Math.ceil(maximumCount * 0.23));
     const minimumSpan = Math.max(prepared.width * 0.1, maximumSpan * 0.32);
-    const candidates = bandRows.filter((row) => row.items.length >= minimumCount
-      && row.right - row.left >= minimumSpan)
+    const structuralCandidates = bandRows.filter((row) => row.items.length >= minimumCount
+      && row.right - row.left >= minimumSpan);
+    // Every true EOP baseline crosses the shared measure bars. Dense upper
+    // chord layers can look like an extra part, but they do not carry the
+    // system's repeated bar grid. Prefer bar-bearing rows whenever available;
+    // the sparse-row recovery below still handles a short pickup or coda.
+    const barredCandidates = structuralCandidates.filter((row) => {
+      const bars = (row.detectedMarks || []).filter((mark) => scoreIsBarToken(mark.text));
+      if (bars.length < 2) return false;
+      return Math.max(...bars.map((bar) => bar.x)) - Math.min(...bars.map((bar) => bar.x))
+        >= prepared.width * 0.12;
+    });
+    const candidates = (barredCandidates.length ? barredCandidates : structuralCandidates)
       .sort((left, right) => left.center - right.center);
     if (!candidates.length) continue;
 
@@ -13034,7 +13226,7 @@ function scoreNativePdfAttachSystemControls(nativePdf, systems, dominantHeight) 
       const layer = (token) => (token.scoreControlBefore ? 0 : (token.scoreControl ? 2 : 1));
       return layer(left) - layer(right);
     });
-    lead.text = lead.tokens.map((token) => token.text).join(" ");
+    lead.text = scoreNativePdfTokensText(lead.tokens);
   });
 }
 
@@ -13044,6 +13236,11 @@ function scoreNativePdfNotation(nativePdf, prepared) {
     && item.height >= dominantHeight * 0.45
     && item.height <= dominantHeight * 1.4);
   const dotData = scoreNativePdfDotAssignments(nativePdf.items, allNumberItems, dominantHeight);
+  const articulationData = scoreNativePdfArticulationAssignments(
+    nativePdf.items,
+    allNumberItems,
+    dominantHeight,
+  );
   const clusteredRows = scoreNativePdfClusterRows(nativePdf.items, dominantHeight);
   const stackLayerRows = scoreNativePdfStackLayerRows(clusteredRows, dominantHeight);
   let rows = clusteredRows.filter((row) => !stackLayerRows.has(row));
@@ -13067,9 +13264,11 @@ function scoreNativePdfNotation(nativePdf, prepared) {
     prepared,
     row,
     dotData,
+    articulationData,
     referenceTone,
   ));
-  const arpeggioCount = scoreNativePdfAttachArpeggios(nativePdf, builtRows, dominantHeight);
+  const dynamicCount = scoreNativePdfAttachDynamics(nativePdf, builtRows, dominantHeight);
+  let arpeggioCount = scoreNativePdfAttachArpeggios(nativePdf, builtRows, dominantHeight);
   const systems = scoreNativePdfMeasureRowGroups(
     nativePdf,
     builtRows,
@@ -13110,24 +13309,38 @@ function scoreNativePdfNotation(nativePdf, prepared) {
         upper,
         lower,
         dotData,
+        articulationData,
         allNumberItems,
         mainItems,
       );
+      arpeggioCount += extras.rasterArpeggioCount || 0;
       const orderedPlainStacks = scoreNativePdfOrderPlainStacksTopToBottom(extras.events);
       if (orderedPlainStacks) {
-        upper.text = upper.tokens.map((token) => token.text).join(" ");
-        if (lower !== upper) lower.text = lower.tokens.map((token) => token.text).join(" ");
+        upper.text = scoreNativePdfTokensText(upper.tokens);
+        if (lower !== upper) lower.text = scoreNativePdfTokensText(lower.tokens);
       }
       stackedChordTones += extras.chordToneCount || 0;
-      const lanes = scoreNativePdfSplitLanes(extras.events);
-      lanes.forEach((lane) => {
-        // Chord tones are subordinate lanes, not additional printed parts.
-        // Keep them in a separate C namespace so V1..Vn always means the
-        // visible top-to-bottom baselines and can never be displaced.
-        chordLaneTexts.push(`[C${nextChordLane}:chord] `
-          + scoreNativePdfExtraLaneText(lane, extras.measureDurations));
-        nextChordLane += 1;
-      });
+      const eventsByOwner = new Map();
+      for (const event of extras.events) {
+        const ownerVoice = Number(event.parent?.row?.voiceIndex) || upper.voiceIndex;
+        event.ownerVoice = ownerVoice;
+        const ownerEvents = eventsByOwner.get(ownerVoice) || [];
+        ownerEvents.push(event);
+        eventsByOwner.set(ownerVoice, ownerEvents);
+      }
+      for (const [ownerVoice, ownerEvents] of [...eventsByOwner.entries()]
+        .sort((left, right) => left[0] - right[0])) {
+        const lanes = scoreNativePdfSplitLanes(ownerEvents);
+        lanes.forEach((lane) => {
+          // Chord tones are subordinate lanes, not additional printed parts.
+          // Keep them in a separate C namespace and record their owning V
+          // baseline. Articulations then remain local to the correct player
+          // in duet/four-hand systems.
+          chordLaneTexts.push(`[C${nextChordLane}:chord-v${ownerVoice}] `
+            + scoreNativePdfExtraLaneText(lane, extras.measureDurations));
+          nextChordLane += 1;
+        });
+      }
     }
 
     // Emit the baselines only after vertical stacks have been resolved. This
@@ -13152,6 +13365,8 @@ function scoreNativePdfNotation(nativePdf, prepared) {
     maxBaselineVoices,
     stackedChordTones,
     arpeggioCount,
+    staccatoCount: articulationData.markCount,
+    dynamicCount,
     systemCount: systems.length,
     expectedSystemCount,
     structureComplete,
@@ -13168,7 +13383,7 @@ function scoreResolveNativePdfTies(text) {
   let implicitVoice = "V1";
   for (const line of lines) {
     if (!line.tokens.length) continue;
-    const label = line.tokens[0].match(/^\[((?:V|C)\d+)(?::[a-z-]+)?\]$/i);
+    const label = line.tokens[0].match(/^\[((?:V|C)\d+)(?::[a-z0-9-]+)?\]$/i);
     const voice = label ? label[1].toUpperCase() : implicitVoice;
     if (label) implicitVoice = voice;
     const start = label ? 1 : 0;
@@ -13364,6 +13579,24 @@ function scoreCanonicalKey(rawKey) {
   if (!match) return normalized;
   const accidental = match[2] === "#" ? "♯" : (match[2] === "b" ? "♭" : "");
   return `${match[1].toUpperCase()}${accidental}`;
+}
+
+// A Jianpu key signature such as 1=B♭ defines a pitch class, not permission
+// to move every note upward into the next octave.  Keep unmarked scale-degree
+// 1 in the central octave by choosing the closest enharmonic tonic to C4.
+// Thus 1=F♯ is F♯4, while 1=G through 1=B are G3 through B3.  Printed dots
+// remain the sole authority for octave displacement.
+function scoreTonicMidiForKey(rawKey) {
+  const keyLabel = scoreCanonicalKey(rawKey);
+  const catalogMidi = SCORE_KEY_OPTIONS.find(([label]) => label === keyLabel)?.[1];
+  if (!Number.isFinite(catalogMidi)) return SCORE_MIDDLE_C_MIDI;
+  const upwardSemitones = (
+    (catalogMidi - SCORE_MIDDLE_C_MIDI) % 12 + 12
+  ) % 12;
+  const signedSemitones = upwardSemitones > 6
+    ? upwardSemitones - 12
+    : upwardSemitones;
+  return SCORE_MIDDLE_C_MIDI + signedSemitones;
 }
 
 function scoreApplyDetectedKey(rawKey) {
@@ -13602,6 +13835,8 @@ async function scoreRecognizePages() {
   let recognizedSystems = 0;
   let expectedSystems = 0;
   let arpeggioMarks = 0;
+  let staccatoMarks = 0;
+  let dynamicMarks = 0;
 
   try {
     let worker = null;
@@ -13645,6 +13880,8 @@ async function scoreRecognizePages() {
         recognizedSystems += parsed.systemCount || 0;
         expectedSystems += parsed.expectedSystemCount || 0;
         arpeggioMarks += parsed.arpeggioCount || 0;
+        staccatoMarks += parsed.staccatoCount || 0;
+        dynamicMarks += parsed.dynamicCount || 0;
         nativePdfPages += 1;
         scoreSetStatus(`完成第 ${index + 1}/${SCORE_STATE.pages.length} 页几何校谱`, 0.12 + (pageBase + pageSpan) * 0.82);
         await new Promise((resolve) => window.setTimeout(resolve, 20));
@@ -13823,6 +14060,8 @@ async function scoreRecognizePages() {
         recognizedSystems,
         expectedSystems,
         arpeggioMarks,
+        staccatoMarks,
+        dynamicMarks,
         confidence: average,
       };
       const voiceLabel = polyphonicSystems ? ` · ${polyphonicSystems} 组多声部` : "";
@@ -13834,16 +14073,18 @@ async function scoreRecognizePages() {
         ? ` · ${recognizedSystems}/${expectedSystems} 个谱表系统`
         : "";
       const arpeggioLabel = arpeggioMarks ? ` · ${arpeggioMarks} 个琶音` : "";
+      const staccatoLabel = staccatoMarks ? ` · ${staccatoMarks} 个断奏` : "";
+      const dynamicLabel = dynamicMarks ? ` · ${dynamicMarks} 个力度标记` : "";
       const sourceLabel = nativePdfPages === SCORE_STATE.pages.length
         ? " · PDF 原生结构校验"
         : (nativePdfPages ? ` · ${nativePdfPages} 页原生结构校验` : " · 离线图像结构");
       const systemsComplete = !expectedSystems || recognizedSystems === expectedSystems;
-      confidence.textContent = `${recognizedLines} 行${voiceLabel}${ensembleLabel}${chordLabel}${systemLabel}${arpeggioLabel}${sourceLabel} · ${Math.round(average)}%`;
+      confidence.textContent = `${recognizedLines} 行${voiceLabel}${ensembleLabel}${chordLabel}${systemLabel}${arpeggioLabel}${staccatoLabel}${dynamicLabel}${sourceLabel} · ${Math.round(average)}%`;
       confidence.dataset.tone = average >= 78 && !lowResolutionPages && systemsComplete ? "good" : "warn";
       scoreSetStatus(
         SCORE_STATE.cancelRecognition
           ? "已停止，保留已完成页面"
-          : `结构识谱完成：${recognizedLines} 行${voiceLabel}${ensembleLabel}${chordLabel}${systemLabel}${arpeggioLabel}${sourceLabel}${systemsComplete ? "" : "；发现谱表系统缺失，请校对"}${lowResolutionPages ? `；${lowResolutionPages} 页原图偏小，请抽查` : ""}`,
+          : `结构识谱完成：${recognizedLines} 行${voiceLabel}${ensembleLabel}${chordLabel}${systemLabel}${arpeggioLabel}${staccatoLabel}${dynamicLabel}${sourceLabel}${systemsComplete ? "" : "；发现谱表系统缺失，请校对"}${lowResolutionPages ? `；${lowResolutionPages} 页原图偏小，请抽查` : ""}`,
         1,
         average >= 78 && systemsComplete ? "success" : "warn",
       );
@@ -13864,7 +14105,7 @@ async function scoreRecognizePages() {
 function scoreTokenize(text) {
   const normalized = String(text || "")
     .replace(/^\s*@.*$/gm, " ")
-    .replace(/^\s*\[(?:V|C)\d+(?::[a-z-]+)?\]\s*/gim, " ")
+    .replace(/^\s*\[(?:V|C)\d+(?::[a-z0-9-]+)?\]\s*/gim, " ")
     .replace(/(^|[^\[])\[\d+\](?!\])/g, "$1 ")
     .replaceAll("𝄪", "##")
     .replaceAll("𝄫", "bb")
@@ -13877,14 +14118,14 @@ function scoreTokenize(text) {
     .replace(/[—–－]/g, "-")
     .replace(/[，]/g, " ")
     .replace(/[。]/g, ".");
-  return normalized.match(/\[T(?:[3-9]\d|[12]\d{2}|300)\]|\[M(?:[1-9]|[12]\d|3[0-2])\/(?:1|2|4|8|16|32)\]|\[(?:SEGNO|TOCODA|CODA|DS|DC|FINE|ARP)\]|\[\[[1-9](?:[,-][1-9])*\]\]|\{3:|:\|:|:\||\|:|[}~]|(?:##|bb|#|b|n)?[0-7][,']*\/{0,6}\.{0,2}|-+|\|/g) || [];
+  return normalized.match(/\[T(?:[3-9]\d|[12]\d{2}|300)\]|\[M(?:[1-9]|[12]\d|3[0-2])\/(?:1|2|4|8|16|32)\]|\[(?:PPP|PP|P|MP|MF|F|FF|FFF|SFZ|SEGNO|TOCODA|CODA|DS|DC|FINE|ARP|STACC)\]|\[\[[1-9](?:[,-][1-9])*\]\]|\{3:|:\|:|:\||\|:|[}~]|(?:##|bb|#|b|n)?[0-7][,']*\/{0,6}\.{0,2}|-+|\|/gi) || [];
 }
 
 function scoreParseMonophonicSequence(text, options = {}) {
   const tokens = scoreTokenize(text);
   void options;
   const keyLabel = document.getElementById("score-key")?.value || "C";
-  const tonic = SCORE_KEY_OPTIONS.find(([label]) => label === keyLabel)?.[1] ?? 60;
+  const tonic = scoreTonicMidiForKey(keyLabel);
   const events = [];
   const display = [];
   let beat = 0;
@@ -13893,6 +14134,9 @@ function scoreParseMonophonicSequence(text, options = {}) {
   let tripletBeamDepth = 0;
   let tripletPosition = 0;
   let arpeggioPending = false;
+  let staccatoPending = false;
+  let dynamicLevel = "mf";
+  let dynamicAccent = "";
   let measureStartBeat = 0;
   const measureDurations = [];
   const measures = [];
@@ -13926,6 +14170,19 @@ function scoreParseMonophonicSequence(text, options = {}) {
     if (token === "[ARP]") {
       arpeggioPending = true;
       display.push({ type: "arpeggio", text: "琶音" });
+      continue;
+    }
+    if (token === "[STACC]") {
+      staccatoPending = true;
+      display.push({ type: "articulation", text: "断奏" });
+      continue;
+    }
+    const dynamicControl = token.match(/^\[(PPP|PP|P|MP|MF|F|FF|FFF|SFZ)\]$/i);
+    if (dynamicControl) {
+      const level = dynamicControl[1].toLowerCase();
+      if (level === "sfz") dynamicAccent = level;
+      else dynamicLevel = level;
+      display.push({ type: "dynamic", text: level });
       continue;
     }
     if (token === "{3:") {
@@ -13995,7 +14252,7 @@ function scoreParseMonophonicSequence(text, options = {}) {
         const previous = events.at(-1);
         if (previous) {
           previous.duration += 1;
-          previous.playDuration = previous.duration;
+          previous.playDuration = previous.duration * (previous.articulationGate || 1);
         }
         beat += 1;
         display.push({ type: "dash", text: dash });
@@ -14033,9 +14290,10 @@ function scoreParseMonophonicSequence(text, options = {}) {
         accidentalOffset = measureAccidentals.get(accidentalKey) ?? 0;
       }
       midi = tonic + SCORE_DEGREE_STEPS[digit] + octave * 12 + accidentalOffset;
-      // The playback engine follows the complete acoustic-piano range. Six
-      // octave marks remain parseable, but impossible pitches are bounded at
-      // the actual 88-key endpoints instead of wrapping or dropping out.
+      // The playback engine follows the complete extended acoustic-piano
+      // range. Six octave marks remain parseable, but impossible pitches are
+      // bounded at the configured 108-key endpoints instead of wrapping or
+      // dropping out.
       midi = Math.min(PIANO_MIDI_MAX, Math.max(PIANO_MIDI_MIN, midi));
     }
     const event = {
@@ -14048,13 +14306,18 @@ function scoreParseMonophonicSequence(text, options = {}) {
       midi,
       start: beat,
       duration,
-      playDuration: duration,
+      playDuration: duration * (staccatoPending ? 0.5 : 1),
+      articulation: staccatoPending ? "staccato" : "",
+      articulationGate: staccatoPending ? 0.5 : 1,
+      dynamic: dynamicAccent || dynamicLevel,
       measureBeat: beat - measureStartBeat,
       triplet: tripletActive,
       tripletPosition: tripletActive ? tripletPosition : -1,
       arpeggioRoot: arpeggioPending,
     };
     arpeggioPending = false;
+    staccatoPending = false;
+    dynamicAccent = "";
     events.push(event);
     display.push({ type: "note", text: token, eventIndex });
     eventIndex += 1;
@@ -14351,7 +14614,7 @@ function scoreScopedOpeningTempoEnd(tempoChanges, repeatMarkers, totalBeats, seg
 function scoreParseSequence(text) {
   const source = String(text || "");
   const rows = source.split(/\r?\n/);
-  const voiceHeader = (row) => row.match(/^\s*\[((?:V|C)\d+)(?::(lead|hand|chord|ornament))?\]\s*(.*)$/i);
+  const voiceHeader = (row) => row.match(/^\s*\[((?:V|C)\d+)(?::([a-z0-9-]+))?\]\s*(.*)$/i);
   if (!rows.some((row) => voiceHeader(row))) {
     const parsed = scoreParseMonophonicSequence(source, { expandRepeats: false });
     const navigated = scoreExpandNavigation(
@@ -14394,7 +14657,15 @@ function scoreParseSequence(text) {
   let monophonicRows = [];
   const repeatMarkers = [];
 
-  const appendParsed = (parsed, startBeat, voice, role = "", label = null, includeStructure = false) => {
+  const appendParsed = (
+    parsed,
+    startBeat,
+    voice,
+    role = "",
+    label = null,
+    includeStructure = false,
+    ownerVoice = null,
+  ) => {
     const offset = eventIndex;
     if (label) display.push({ type: "voice", text: label });
     for (const event of parsed.events) {
@@ -14404,6 +14675,7 @@ function scoreParseSequence(text) {
         start: event.start + startBeat,
         voice,
         role: role || (voice >= 1000 ? "chord" : (voice === 1 ? "lead" : "hand")),
+        ownerVoice: Number.isFinite(ownerVoice) ? ownerVoice : null,
         system: systemIndex,
       });
     }
@@ -14429,7 +14701,7 @@ function scoreParseSequence(text) {
     monophonicRows = [];
     if (!block) return;
     const parsed = scoreParseMonophonicSequence(block, { expandRepeats: false });
-    appendParsed(parsed, cursorBeat, 0, "lead", null, true);
+    appendParsed(parsed, cursorBeat, 0, "lead", null, true, 0);
     for (const marker of parsed.repeatMarkers || []) {
       repeatMarkers.push({ ...marker, beat: cursorBeat + marker.beat });
     }
@@ -14452,11 +14724,14 @@ function scoreParseSequence(text) {
       const identifier = match[1].toUpperCase();
       const displayVoice = Number(identifier.slice(1));
       const chordLane = identifier.startsWith("C");
+      const rawRole = String(match[2] || (chordLane ? "chord" : "")).toLowerCase();
+      const ownerMatch = rawRole.match(/^chord-v(\d+)$/);
       group.push({
         identifier,
         displayVoice,
         voice: chordLane ? 1000 + displayVoice : displayVoice,
-        role: String(match[2] || (chordLane ? "chord" : "")).toLowerCase(),
+        role: ownerMatch ? "chord" : rawRole,
+        ownerVoice: ownerMatch ? Number(ownerMatch[1]) : (chordLane ? null : displayVoice),
         text: match[3],
       });
       rowIndex += 1;
@@ -14476,9 +14751,10 @@ function scoreParseSequence(text) {
         lane.voice,
         lane.role,
         lane.identifier.startsWith("C")
-          ? `和弦叠音 ${lane.identifier}`
+          ? `和弦叠音 ${lane.identifier}${lane.ownerVoice ? `（属 V${lane.ownerVoice}）` : ""}`
           : `${roleLabels[lane.role] || "声部"} ${lane.displayVoice}`,
         laneIndex === 0 || lane.role === "lead",
+        lane.ownerVoice,
       );
       for (const marker of parsed.repeatMarkers || []) {
         const localBeat = Math.abs(marker.beat - parsed.totalBeats) <= 0.08
@@ -14499,7 +14775,7 @@ function scoreParseSequence(text) {
     const key = event.voice || 0;
     if (!lanes.has(key)) lanes.set(key, []);
     event.tiedFromPrevious = false;
-    event.playDuration = event.duration;
+    event.playDuration = event.duration * (event.articulationGate || 1);
     lanes.get(key).push(event);
   }
   for (const lane of lanes.values()) {
@@ -14524,7 +14800,10 @@ function scoreParseSequence(text) {
     const group = events.filter((event) => event.midi !== null
       && event.system === root.system
       && Math.abs(event.start - root.start) <= 1e-7
-      && (event === root || event.role === "chord"))
+      && (event === root || (event.role === "chord"
+        && (!Number.isFinite(event.ownerVoice)
+          || !Number.isFinite(root.ownerVoice)
+          || event.ownerVoice === root.ownerVoice))))
       .sort((left, right) => left.midi - right.midi || left.voice - right.voice);
     group.forEach((event, index) => {
       event.start += Math.min(0.16, index * 0.035);
@@ -14622,7 +14901,7 @@ function scoreEventDescription(event) {
     || `${Number(event.duration.toFixed(4))}拍`;
   const accidentalName = ({ "##": "重升", "#": "升", n: "还原", b: "降", bb: "重降" })[event.accidental] || "";
   const pitch = event.midi === null ? "休止" : `${accidentalName}数字${event.digit}`;
-  return `${pitch}，${duration}${event.tieToNext ? "，与下一同音连结、不重新触键" : ""}${event.voice ? `，声部${event.voice}` : ""}`;
+  return `${pitch}，${duration}${event.articulation === "staccato" ? "，断奏" : ""}${event.arpeggio ? "，琶音" : ""}${event.tieToNext ? "，与下一同音连结、不重新触键" : ""}${event.voice ? `，声部${event.voice}` : ""}`;
 }
 
 function scoreAuditMeasures(inputMeasures, meterChanges = []) {
@@ -14698,28 +14977,66 @@ function scoreEventDynamics(event) {
   const onStrongBeat = Number.isFinite(event.measureBeat) && Math.abs(event.measureBeat % 4) < 1e-8;
   const onSecondaryBeat = Number.isFinite(event.measureBeat) && Math.abs((event.measureBeat - 2) % 4) < 1e-8;
   const performanceVelocity = event.triplet ? 0.72 : (onStrongBeat ? 0.88 : (onSecondaryBeat ? 0.82 : 0.76));
+  const dynamicScale = {
+    ppp: 0.45,
+    pp: 0.55,
+    p: 0.65,
+    mp: 0.76,
+    mf: 0.88,
+    f: 1,
+    ff: 1.1,
+    fff: 1.18,
+    sfz: 1.24,
+  }[String(event.dynamic || "mf").toLowerCase()] ?? 0.88;
   const voice = Number(event.voice) || 0;
   const role = event.role || (voice >= 1000 ? "chord" : (voice <= 1 ? "lead" : "hand"));
   const timbreScale = { lead: 0.78, hand: 0.61, chord: 0.46, ornament: 0.67 }[role] ?? 0.61;
-  const musicalVelocity = Math.max(0.08, Math.min(1, performanceVelocity * timbreScale));
+  const musicalVelocity = Math.max(0.08, Math.min(1, performanceVelocity * timbreScale * dynamicScale));
   return {
     role,
     musicalVelocity,
-    outputVelocity: performanceVelocity * (Number.isFinite(event.mixGain) ? event.mixGain : 1),
+    outputVelocity: Math.min(
+      1.2,
+      performanceVelocity * dynamicScale * (Number.isFinite(event.mixGain) ? event.mixGain : 1),
+    ),
   };
 }
 
 function scoreRoleAudioProfile(role) {
   if (role === "lead") {
-    return { cutoff: 17800, attack: 0.0035, releaseWindow: 0.065, releaseNoise: 0.1 };
+    return { cutoff: 14800, attack: 0.0038, tail: 1.15, staccatoTail: 0.58, releaseNoise: 0.1 };
   }
   if (role === "chord") {
-    return { cutoff: 6800, attack: 0.007, releaseWindow: 0.14, releaseNoise: 0.035 };
+    return { cutoff: 7200, attack: 0.007, tail: 1.55, staccatoTail: 0.76, releaseNoise: 0.035 };
   }
   if (role === "ornament") {
-    return { cutoff: 13200, attack: 0.003, releaseWindow: 0.08, releaseNoise: 0.07 };
+    return { cutoff: 12000, attack: 0.003, tail: 0.78, staccatoTail: 0.42, releaseNoise: 0.07 };
   }
-  return { cutoff: 9200, attack: 0.0055, releaseWindow: 0.11, releaseNoise: 0.055 };
+  return { cutoff: 9800, attack: 0.0055, tail: 1.38, staccatoTail: 0.7, releaseNoise: 0.055 };
+}
+
+function scoreAcousticTailSeconds(event, profile) {
+  const base = event.articulation === "staccato"
+    ? profile.staccatoTail
+    : profile.tail;
+  const bassExtension = Math.max(0, Math.min(0.48, (60 - Number(event.midi || 60)) * 0.018));
+  return Math.max(0.35, base + bassExtension);
+}
+
+function scoreScheduleNaturalPianoEnvelope(gainParam, timing) {
+  const {
+    when, attackEnd, gateEnd, acousticEnd, velocity,
+  } = timing;
+  const releaseSpan = Math.max(0.08, acousticEnd - gateEnd);
+  const shoulderEnd = Math.min(
+    acousticEnd - 0.025,
+    gateEnd + Math.min(0.18, releaseSpan * 0.24),
+  );
+  gainParam.setValueAtTime(0.0001, when);
+  gainParam.linearRampToValueAtTime(velocity, attackEnd);
+  gainParam.setValueAtTime(velocity, gateEnd);
+  gainParam.exponentialRampToValueAtTime(Math.max(0.0008, velocity * 0.19), shoulderEnd);
+  gainParam.exponentialRampToValueAtTime(0.000003, acousticEnd);
 }
 
 function scoreSequenceSamples() {
@@ -14786,20 +15103,14 @@ function scoreRefreshSequence() {
     if (item.type === "key") return `<span class="score-key-change">${scoreEscapeHtml(item.text)}</span>`;
     if (item.type === "tempo" || item.type === "meter" || item.type === "navigation") return `<span class="score-key-change">${scoreEscapeHtml(item.text)}</span>`;
     if (item.type === "arpeggio") return '<span class="score-key-change" aria-label="琶音">≀ 琶音</span>';
+    if (item.type === "articulation") return '<span class="score-key-change" aria-label="断奏">▽ 断奏</span>';
+    if (item.type === "dynamic") return `<span class="score-key-change" aria-label="力度">${scoreEscapeHtml(item.text)}</span>`;
     if (item.type === "voice") return `<span class="score-voice-break">${scoreEscapeHtml(item.text)}</span>`;
     if (item.type === "ending") return `<span class="score-measure-label">${scoreEscapeHtml(item.text)}</span>`;
     const sequenceEvent = SCORE_STATE.sequence.find((event) => event.index === item.eventIndex);
     const description = scoreEventDescription(sequenceEvent);
     return `<button class="score-note-chip" type="button" data-score-event="${item.eventIndex}" aria-label="${scoreEscapeHtml(description)}" title="${scoreEscapeHtml(description)}">${scoreJianpuMarkup(item.text, sequenceEvent)}</button>`;
   }).join("") : '<span class="score-visual-empty">识别或输入简谱后显示</span>';
-  const visualEventNodes = new Map();
-  visual.querySelectorAll(".score-note-chip[data-score-event]").forEach((chip) => {
-    const eventIndex = Number(chip.dataset.scoreEvent);
-    if (Number.isFinite(eventIndex)) visualEventNodes.set(eventIndex, chip);
-  });
-  SCORE_STATE.visualEventNodes = visualEventNodes;
-  SCORE_STATE.activeVisualChips = new Set();
-  SCORE_STATE.currentVisualIndex = null;
   const soundedNotes = parsed.events.filter((event) => event.midi !== null && !event.tiedFromPrevious).length;
   const audit = scoreAuditMeasures(
     parsed.measures || parsed.measureDurations,
@@ -15290,7 +15601,7 @@ function scoreRenderedTrackSignature() {
     hash ^= source.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
-  return `wav12-a440-48k320-queued-108-${(hash >>> 0).toString(36)}-${SCORE_STATE.sequence.length}-${scoreTotalBeats().toFixed(4)}`;
+  return `wav14-bodied-natural-tail-a440-48k320-queued-108-${(hash >>> 0).toString(36)}-${SCORE_STATE.sequence.length}-${scoreTotalBeats().toFixed(4)}`;
 }
 
 function scoreScheduleOfflineVoice(context, output, event, timelineStartSeconds = 0) {
@@ -15318,15 +15629,14 @@ function scoreScheduleOfflineVoice(context, output, event, timelineStartSeconds 
     event.playDuration || event.duration,
   ));
   const attackEnd = when + Math.min(profile.attack, writtenSeconds * 0.24);
-  const releaseEnd = when + writtenSeconds;
-  const bodyEnd = Math.max(attackEnd, releaseEnd - Math.min(profile.releaseWindow, writtenSeconds * 0.24));
+  const gateEnd = when + writtenSeconds;
+  const acousticEnd = gateEnd + scoreAcousticTailSeconds(event, profile);
   const velocity = dynamics.outputVelocity * rangeProfile.gain;
-  gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.linearRampToValueAtTime(velocity, attackEnd);
-  gain.gain.setValueAtTime(velocity, bodyEnd);
-  gain.gain.exponentialRampToValueAtTime(0.000003, releaseEnd);
+  scoreScheduleNaturalPianoEnvelope(gain.gain, {
+    when, attackEnd, gateEnd, acousticEnd, velocity,
+  });
   source.start(when, pianoSampleOffset(buffer));
-  source.stop(releaseEnd + 0.035);
+  source.stop(acousticEnd + 0.05);
   const releaseSample = nearestReleaseSample(event.midi);
   const releaseBuffer = decodedBuffers.get(releaseSample.file);
   if (releaseBuffer) {
@@ -15342,15 +15652,15 @@ function scoreScheduleOfflineVoice(context, output, event, timelineStartSeconds 
     releaseTone.Q.value = 0.5;
     releaseSource.buffer = releaseBuffer;
     releaseSource.playbackRate.value = pianoPlaybackRate(event.midi, releaseSample.midi);
-    releaseGain.gain.setValueAtTime(Math.max(0.003, velocity * profile.releaseNoise), releaseEnd);
+    releaseGain.gain.setValueAtTime(Math.max(0.003, velocity * profile.releaseNoise), gateEnd);
     releaseGain.gain.exponentialRampToValueAtTime(
       0.000003,
-      releaseEnd + Math.min(0.8, releaseBuffer.duration),
+      gateEnd + Math.min(0.8, releaseBuffer.duration),
     );
     releaseSource.connect(releaseGain);
     releaseGain.connect(releaseTone);
     releaseTone.connect(output);
-    releaseSource.start(releaseEnd, pianoSampleOffset(releaseBuffer));
+    releaseSource.start(gateEnd, pianoSampleOffset(releaseBuffer));
   }
 }
 
@@ -15379,12 +15689,12 @@ function scoreRenderOfflineContext(context) {
 
 function scoreConnectOfflineMix(context) {
   const output = context.createGain();
-  output.gain.value = 0.9;
+  output.gain.value = 0.88;
   connectWarmPianoChain(context, output, context.destination, {
-    dry: 0.97,
-    wet: 0.1,
-    output: 0.91,
-    roomSeconds: 2.1,
+    dry: 0.94,
+    wet: 0.24,
+    output: 0.86,
+    roomSeconds: 2.6,
   });
   return output;
 }
@@ -15404,7 +15714,10 @@ async function scoreRenderChunkedBackgroundTrack(
   // Re-render a lead-in before every exported block. The overlap warms up the
   // envelope and compressor, so joining blocks does not re-strike sustained
   // notes or add clicks at the seams.
-  const leadSeconds = Math.min(9, Math.max(2.5, maxWrittenSeconds + 0.3));
+  const leadSeconds = Math.min(
+    9,
+    Math.max(SCORE_RENDER_TAIL_SECONDS + 0.9, maxWrittenSeconds + SCORE_RENDER_TAIL_SECONDS),
+  );
   const chunkCount = Math.ceil(duration / chunkSeconds);
   const pcmChunks = [];
   for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
@@ -15542,7 +15855,7 @@ async function scorePrepareRenderedTrack(signature = scoreRenderedTrackSignature
   const jobId = ++SCORE_STATE.renderJobId;
   const task = (async () => {
     if (!background) scoreSetStatus("正在准备后台播放", 0.9, "success");
-    const duration = Math.max(0.2, scoreTotalSeconds() + 0.28);
+    const duration = Math.max(0.2, scoreTotalSeconds() + SCORE_RENDER_TAIL_SECONDS);
     const lowMemory = scoreNeedsChunkedBackgroundTrack();
     // Long scores are rendered in chunks for memory safety, but retain the
     // same full 44.1 kHz quality as short scores.
@@ -15965,18 +16278,17 @@ function scoreScheduleVoice(event, when) {
     event.playDuration || event.duration,
   ));
   const attackEnd = when + Math.min(profile.attack, writtenSeconds * 0.24);
-  const releaseEnd = when + writtenSeconds;
-  const bodyEnd = Math.max(attackEnd, releaseEnd - Math.min(profile.releaseWindow, writtenSeconds * 0.24));
+  const gateEnd = when + writtenSeconds;
+  const acousticEnd = gateEnd + scoreAcousticTailSeconds(event, profile);
   const velocity = dynamics.outputVelocity * rangeProfile.gain;
-  gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.linearRampToValueAtTime(velocity, attackEnd);
-  gain.gain.setValueAtTime(velocity, bodyEnd);
-  gain.gain.exponentialRampToValueAtTime(0.000003, releaseEnd);
+  scoreScheduleNaturalPianoEnvelope(gain.gain, {
+    when, attackEnd, gateEnd, acousticEnd, velocity,
+  });
   const voice = { source, gain, tone, kill, scheduledWhen: when };
   SCORE_STATE.scoreVoices.add(voice);
   source.onended = () => SCORE_STATE.scoreVoices.delete(voice);
   source.start(when, pianoSampleOffset(buffer));
-  source.stop(releaseEnd + 0.035);
+  source.stop(acousticEnd + 0.05);
   const releaseSample = nearestReleaseSample(event.midi);
   const releaseBuffer = decodedBuffers.get(releaseSample.file);
   if (releaseBuffer) {
@@ -15992,15 +16304,15 @@ function scoreScheduleVoice(event, when) {
     releaseTone.Q.value = 0.5;
     releaseSource.buffer = releaseBuffer;
     releaseSource.playbackRate.value = pianoPlaybackRate(event.midi, releaseSample.midi);
-    releaseGain.gain.setValueAtTime(Math.max(0.003, velocity * profile.releaseNoise), releaseEnd);
+    releaseGain.gain.setValueAtTime(Math.max(0.003, velocity * profile.releaseNoise), gateEnd);
     releaseGain.gain.exponentialRampToValueAtTime(
       0.000003,
-      releaseEnd + Math.min(0.8, releaseBuffer.duration),
+      gateEnd + Math.min(0.8, releaseBuffer.duration),
     );
     releaseSource.connect(releaseGain);
     releaseGain.connect(releaseTone);
     releaseTone.connect(kill);
-    releaseSource.start(releaseEnd, pianoSampleOffset(releaseBuffer));
+    releaseSource.start(gateEnd, pianoSampleOffset(releaseBuffer));
   }
 }
 
@@ -16111,9 +16423,7 @@ function scoreSetPlayButton(playing, signature = scoreRenderedTrackSignature()) 
   button.disabled = !hasSequence;
   button.setAttribute("aria-busy", String(waiting));
   button.classList.toggle("is-playing", activelyPlaying || queued);
-  button.querySelector("span").textContent = activelyPlaying
-    ? "Ⅱ\uFE0E"
-    : (queued ? "×\uFE0E" : (retryable ? "↻\uFE0E" : "▶\uFE0E"));
+  button.querySelector("span").textContent = activelyPlaying ? "Ⅱ" : (queued ? "×" : (retryable ? "↻" : "▶"));
   button.querySelector("strong").textContent = activelyPlaying
     ? "暂停"
     : (queued
@@ -16130,44 +16440,22 @@ function scoreHighlightEvent(index) {
 function scoreHighlightEvents(indices) {
   const normalized = [...new Set(indices || [])].filter((index) => Number.isFinite(index));
   const signature = normalized.join(",");
-  const studio = document.getElementById("score-studio");
-  if (!studio || studio.hidden || studio.classList.contains("is-transitioning")) {
-    // Playback continues while the score is closed, but walking and scrolling
-    // a long hidden notation tree only steals frames from the keyboard and the
-    // shared-element transition. Apply the latest position once it is visible.
-    SCORE_STATE.deferredVisualIndices = normalized;
-    return;
-  }
   if (SCORE_STATE.currentVisualIndex === signature) return;
-  const visual = document.getElementById("score-visual");
-  for (const chip of SCORE_STATE.activeVisualChips || []) chip.classList.remove("is-playing");
+  document.querySelectorAll(".score-note-chip.is-playing").forEach((chip) => chip.classList.remove("is-playing"));
   SCORE_STATE.currentVisualIndex = signature;
-  SCORE_STATE.deferredVisualIndices = null;
-  const nextActiveChips = new Set();
   let first = null;
   for (const index of normalized) {
-    const current = SCORE_STATE.visualEventNodes?.get(index)
-      || visual?.querySelector(`.score-note-chip[data-score-event="${index}"]`);
+    const current = document.querySelector(`.score-note-chip[data-score-event="${index}"]`);
     current?.classList.add("is-playing");
-    if (current) nextActiveChips.add(current);
     if (!first) first = current;
   }
-  SCORE_STATE.activeVisualChips = nextActiveChips;
   if (first) {
-    const viewport = visual?.getBoundingClientRect();
+    const viewport = document.getElementById("score-visual")?.getBoundingClientRect();
     const current = first.getBoundingClientRect();
     if (viewport && (current.top < viewport.top + 3 || current.bottom > viewport.bottom - 3)) {
       first.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
     }
   }
-}
-
-function scoreFlushDeferredVisualHighlight() {
-  if (!Array.isArray(SCORE_STATE.deferredVisualIndices)) return;
-  const deferred = SCORE_STATE.deferredVisualIndices;
-  SCORE_STATE.deferredVisualIndices = null;
-  SCORE_STATE.currentVisualIndex = null;
-  scoreHighlightEvents(deferred);
 }
 
 function scoreKeyboardKeyForEvent(event) {
@@ -16508,16 +16796,10 @@ function scoreCssKeyframe(frame) {
   return declarations.join(";");
 }
 
-// Current GitHub/Safari builds can keep these transforms entirely on the
-// compositor through Web Animations. Injecting a new @keyframes stylesheet for
-// every element forces a full style recalculation across long imported scores,
-// so CSS animation remains only as a compatibility path for older viewers.
+// Some iOS file viewers expose enough JavaScript to toggle the interface but
+// omit Web Animations. CSS keyframes are supported by much older WKWebViews,
+// so the score transition deliberately uses this compatibility runner.
 function scoreAnimateElement(element, keyframes, options = {}) {
-  if (typeof element?.animate === "function") {
-    try {
-      return element.animate(keyframes, options);
-    } catch {}
-  }
   const name = `score-shared-${++SCORE_CSS_ANIMATION_ID}`;
   const lastIndex = Math.max(1, keyframes.length - 1);
   const rules = keyframes.map((frame, index) => {
@@ -16598,78 +16880,19 @@ function scoreScaledRadius(radius, scaleX, scaleY) {
 }
 
 function scoreCloneDialogSnapshot(dialog) {
-  const directChild = (parent, className) => {
-    for (const child of parent?.children || []) {
-      if (child.classList?.contains(className)) return child;
-    }
-    return null;
-  };
-  const clone = dialog.cloneNode(false);
-  const sourceHeader = directChild(dialog, "score-header");
-  const sourceProgress = directChild(dialog, "score-progress-wrap");
-  const sourceScroll = directChild(dialog, "score-scroll");
-  const sourcePerformance = directChild(sourceScroll, "score-performance");
-  const sourceHead = directChild(sourcePerformance, "score-performance-head");
-  const sourceVisual = directChild(sourcePerformance, "score-visual");
-  const sourceTransport = directChild(sourcePerformance, "score-transport");
-  const sourceWorkbench = directChild(sourcePerformance, "score-workbench");
-
-  if (sourceHeader) clone.append(sourceHeader.cloneNode(true));
-  if (sourceProgress) clone.append(sourceProgress.cloneNode(true));
-
-  if (sourceScroll && sourcePerformance) {
-    const scroll = sourceScroll.cloneNode(false);
-    const performance = sourcePerformance.cloneNode(false);
-    if (sourceHead) performance.append(sourceHead.cloneNode(true));
-
-    if (sourceVisual) {
-      const visual = sourceVisual.cloneNode(false);
-      visual.classList.add("score-transition-visual-preview");
-      const total = sourceVisual.children.length;
-      const limit = Math.min(72, total);
-      const deferredIndex = SCORE_STATE.deferredVisualIndices?.[0];
-      const activeIndex = Number(String(SCORE_STATE.currentVisualIndex ?? "").split(",")[0]);
-      const anchorIndex = Number.isFinite(deferredIndex) ? deferredIndex : activeIndex;
-      let child = SCORE_STATE.visualEventNodes?.get(anchorIndex) || sourceVisual.firstElementChild;
-      // Reading scrollHeight here would synchronously lay out every note in a
-      // long score. Walk a fixed sibling window around the active event instead
-      // so snapshot cost remains bounded even while playback is advancing.
-      for (let index = 0; child && index < Math.floor(limit / 2); index += 1) {
-        if (!child.previousElementSibling) break;
-        child = child.previousElementSibling;
-      }
-      for (let index = 0; child && index < limit; index += 1) {
-        visual.append(child.cloneNode(true));
-        child = child.nextElementSibling;
-      }
-      performance.append(visual);
-    }
-
-    if (sourceTransport) performance.append(sourceTransport.cloneNode(true));
-    if (sourceWorkbench) {
-      const workbench = sourceWorkbench.cloneNode(false);
-      const summary = sourceWorkbench.querySelector(":scope > summary");
-      if (summary) workbench.append(summary.cloneNode(true));
-      workbench.open = false;
-      performance.append(workbench);
-    }
-    scroll.append(performance);
-    clone.append(scroll);
-  }
-
-  // Only the compact snapshot is inspected here. Matching by id avoids a
-  // second traversal of the original long score while preserving live range,
-  // select and progress values that cloneNode() does not consistently copy.
-  clone.querySelectorAll("[id]").forEach((copy) => {
-    const source = document.getElementById(copy.id);
-    if (!source) return;
+  const clone = dialog.cloneNode(true);
+  const sourceControls = dialog.querySelectorAll("input, textarea, select, progress, details");
+  const cloneControls = clone.querySelectorAll("input, textarea, select, progress, details");
+  sourceControls.forEach((source, index) => {
+    const copy = cloneControls[index];
+    if (!copy) return;
     try {
       if ("value" in source) copy.value = source.value;
       if ("checked" in source) copy.checked = source.checked;
       if ("selectedIndex" in source) copy.selectedIndex = source.selectedIndex;
+      if (source.tagName === "DETAILS") copy.open = source.open;
     } catch {}
   });
-  clone.querySelector(".score-workbench")?.removeAttribute("open");
   clone.removeAttribute("aria-labelledby");
   clone.setAttribute("aria-hidden", "true");
   clone.tabIndex = -1;
@@ -16686,53 +16909,21 @@ function scoreCloneDialogSnapshot(dialog) {
 
 function scoreDialogAppearance(dialog) {
   const style = getComputedStyle(dialog);
-  const radius = Number.parseFloat(style.borderTopLeftRadius);
   return {
-    radius: Number.isFinite(radius) ? radius : 0,
+    radius: scoreCornerRadius(dialog),
     boxShadow: style.boxShadow,
     backgroundColor: style.backgroundColor,
-    fontFamily: style.fontFamily,
   };
 }
 
-function scoreTriggerAppearance(trigger) {
-  const style = getComputedStyle(trigger);
-  const radius = Number.parseFloat(style.borderTopLeftRadius);
-  return {
-    radius: Number.isFinite(radius) ? radius : 0,
-    color: style.color,
-    background: style.background,
-    borderColor: style.borderColor,
-    borderStyle: style.borderStyle,
-    borderWidth: style.borderWidth,
-    boxShadow: style.boxShadow,
-    webkitBackdropFilter: style.webkitBackdropFilter,
-    backdropFilter: style.backdropFilter,
-  };
-}
-
-function scoreCreateTransitionVisual(
-  dialog,
-  rect,
-  trigger,
-  triggerRect,
-  snapshot = null,
-  appearance = null,
-  triggerAppearance = null,
-) {
+function scoreCreateTransitionVisual(dialog, rect, trigger, triggerRect, snapshot = null, appearance = null) {
   const layer = document.createElement("div");
   layer.className = "score-transition-layer";
   layer.setAttribute("aria-hidden", "true");
-  // The clone sits outside .score-studio, whose inherited system font keeps
-  // symbol glyphs in their monochrome text presentation on iOS. Copy that
-  // family explicitly so arrows and playback controls never fall back to the
-  // coloured Apple Emoji font during the hand-off.
-  const visualStyle = appearance || scoreDialogAppearance(dialog);
-  layer.style.fontFamily = visualStyle.fontFamily;
-  layer.style.fontVariantEmoji = "text";
 
   const shell = document.createElement("div");
   shell.className = "score-transition-shell";
+  const visualStyle = appearance || scoreDialogAppearance(dialog);
   Object.assign(shell.style, {
     left: `${rect.left}px`,
     top: `${rect.top}px`,
@@ -16748,7 +16939,7 @@ function scoreCreateTransitionVisual(
   // The transition clone lives directly under <body>, outside the console's
   // theme/hover ancestry. Freeze the source button's computed glass material
   // so closing never flashes an older theme colour or drops its current glow.
-  const triggerStyle = triggerAppearance || scoreTriggerAppearance(trigger);
+  const triggerStyle = getComputedStyle(trigger);
   const triggerGhost = trigger.cloneNode(true);
   triggerGhost.id = "";
   triggerGhost.classList.remove("is-launching");
@@ -16777,124 +16968,24 @@ function scoreCreateTransitionVisual(
   return { layer, shell, dialogSnapshot, triggerGhost, appearance: visualStyle };
 }
 
-function scoreResetStudioAnimationStyles(studio, trigger, preservedLayer = null) {
+function scoreResetStudioAnimationStyles(studio, trigger) {
   studio?.classList.remove("is-opening", "is-closing", "is-transitioning");
   trigger?.classList.remove("is-launching");
   document.querySelector(".piano-console")?.classList.remove("is-score-transitioning");
-  const transientClasses = new Set([
-    "score-transition-layer",
-    "score-launch-surface",
-    "score-launch-trigger",
-  ]);
-  for (const node of [...(document.body?.children || [])]) {
-    if (node !== preservedLayer
-      && [...node.classList].some((className) => transientClasses.has(className))) node.remove();
-  }
-}
-
-function scoreParkStudioLayout(studio, rect, appearance = null) {
-  if (!studio || !rect) return;
-  const viewport = window.visualViewport;
-  SCORE_STATE.parkedStudioRect = {
-    ...rect,
-    viewportWidth: viewport?.width || window.innerWidth,
-    viewportHeight: viewport?.height || window.innerHeight,
-  };
-  if (appearance) {
-    const shell = document.querySelector(".app-shell");
-    SCORE_STATE.parkedDialogAppearance = {
-      appearance: { ...appearance },
-      dark: Boolean(
-        shell?.classList.contains("theme-dark")
-        || shell?.classList.contains("piano-dark-page")
-        || document.documentElement.classList.contains("piano-dark-page")
-      ),
-    };
-  }
-  studio.style.setProperty("--score-park-width", `${rect.width}px`);
-  studio.style.setProperty("--score-park-height", `${rect.height}px`);
-  studio.classList.add("score-layout-parked");
-  studio.setAttribute("aria-hidden", "true");
-}
-
-function scoreUnparkStudioLayout(studio) {
-  if (!studio) return;
-  studio.classList.remove("score-layout-parked");
-  studio.removeAttribute("aria-hidden");
-}
-
-function scoreCachedParkedStudioRect() {
-  const cached = SCORE_STATE.parkedStudioRect;
-  if (!cached) return null;
-  const viewport = window.visualViewport;
-  const width = viewport?.width || window.innerWidth;
-  const height = viewport?.height || window.innerHeight;
-  if (Math.abs(width - cached.viewportWidth) > 2 || Math.abs(height - cached.viewportHeight) > 2) {
-    return null;
-  }
-  return {
-    left: cached.left,
-    top: cached.top,
-    right: cached.right,
-    bottom: cached.bottom,
-    width: cached.width,
-    height: cached.height,
-  };
-}
-
-function scoreCachedParkedDialogAppearance() {
-  const cached = SCORE_STATE.parkedDialogAppearance;
-  if (!cached) return null;
-  const shell = document.querySelector(".app-shell");
-  const dark = Boolean(
-    shell?.classList.contains("theme-dark")
-    || shell?.classList.contains("piano-dark-page")
-    || document.documentElement.classList.contains("piano-dark-page")
-  );
-  return cached.dark === dark ? { ...cached.appearance } : null;
+  document.querySelectorAll(".score-transition-layer, .score-launch-surface, .score-launch-trigger").forEach((node) => node.remove());
 }
 
 function scoreFinishStudioAnimation(transition) {
   if (!transition || SCORE_STATE.studioAnimation !== transition) return;
   SCORE_STATE.studioAnimation = null;
-  const nativeHandoff = Boolean(transition.layer)
-    && transition.animations.length > 0
-    && transition.animations.every((animation) => typeof animation?.playState === "string");
   transition.animations.forEach((animation) => {
     animation.onfinish = null;
     animation.oncancel = null;
-    if (!nativeHandoff) {
-      try { animation.cancel(); } catch {}
-    }
+    try { animation.cancel(); } catch {}
   });
-  if (transition.direction === "closing") transition.onFinish?.();
-  scoreResetStudioAnimationStyles(
-    transition.studio,
-    transition.trigger,
-    nativeHandoff ? transition.layer : null,
-  );
-  if (transition.direction !== "closing") {
-    transition.onFinish?.();
-  }
-
-  if (!nativeHandoff) {
-    transition.layer?.remove();
-    if (transition.direction !== "closing") scoreFlushDeferredVisualHighlight();
-    return;
-  }
-
-  /* Keep the finished proxy for two paint opportunities. The real long score
-     can lay out and receive its latest playback highlight behind that opaque
-     frame, then the proxy is removed without a synchronous geometry flush. */
-  window.requestAnimationFrame(() => {
-    if (transition.direction !== "closing") scoreFlushDeferredVisualHighlight();
-    window.requestAnimationFrame(() => {
-      transition.layer?.remove();
-      transition.animations.forEach((animation) => {
-        try { animation.cancel(); } catch {}
-      });
-    });
-  });
+  transition.layer?.remove();
+  scoreResetStudioAnimationStyles(transition.studio, transition.trigger);
+  transition.onFinish?.();
 }
 
 function scoreCancelStudioAnimation(studio, trigger) {
@@ -16921,14 +17012,12 @@ function scoreOpenStudio() {
   if (SCORE_STATE.studioAnimation) return;
 
   const triggerRect = scoreRectSnapshot(trigger);
-  const triggerAppearance = scoreTriggerAppearance(trigger);
   const pianoBefore = scoreRectSnapshot(piano);
   studio.classList.add("is-opening", "is-transitioning");
   piano.classList.add("is-score-transitioning");
   trigger.classList.add("is-launching");
-  shell?.classList.add("score-is-open");
   studio.hidden = false;
-  scoreUnparkStudioLayout(studio);
+  shell?.classList.add("score-is-open");
   trigger.setAttribute("aria-expanded", "true");
   trigger.setAttribute("aria-label", "收起识谱界面");
   if (shell) shell.scrollTop = 0;
@@ -16939,26 +17028,22 @@ function scoreOpenStudio() {
   if (!triggerRect || !targetRect || !pianoBefore || !pianoAfter) {
     scoreResetStudioAnimationStyles(studio, trigger);
     scorePersistUiState();
-    scoreFlushDeferredVisualHighlight();
     return;
   }
 
-  const appearance = scoreDialogAppearance(dialog);
-  const visual = scoreCreateTransitionVisual(
-    dialog, targetRect, trigger, triggerRect, null, appearance, triggerAppearance,
-  );
+  const visual = scoreCreateTransitionVisual(dialog, targetRect, trigger, triggerRect);
   const scaleX = Math.max(0.01, triggerRect.width / targetRect.width);
   const scaleY = Math.max(0.01, triggerRect.height / targetRect.height);
   const deltaX = triggerRect.left - targetRect.left;
   const deltaY = triggerRect.top - targetRect.top;
   const targetRadius = visual.appearance.radius;
-  const triggerRadius = triggerAppearance.radius;
+  const triggerRadius = scoreCornerRadius(trigger);
   const overshoot = 1.009;
   const overshootX = -(targetRect.width * (overshoot - 1)) / 2;
   const overshootY = -(targetRect.height * (overshoot - 1)) / 2;
   const duration = 560;
   const targetShadow = visual.appearance.boxShadow;
-  const triggerShadow = triggerAppearance.boxShadow;
+  const triggerShadow = getComputedStyle(trigger).boxShadow;
 
   const sharedAnimation = scoreAnimateElement(visual.shell, [
     {
@@ -17030,7 +17115,7 @@ function scoreOpenStudio() {
     trigger,
     layer: visual.layer,
     animations: [sharedAnimation, snapshotAnimation, triggerAnimation, pianoAnimation],
-    onFinish: () => scoreScheduleUiPersist(120),
+    onFinish: scorePersistUiState,
   };
   SCORE_STATE.studioAnimation = transition;
   const settle = () => scoreFinishStudioAnimation(transition);
@@ -17052,14 +17137,12 @@ function scoreCloseStudio() {
   const pianoBefore = scoreRectSnapshot(piano);
   const snapshot = scoreCloneDialogSnapshot(dialog);
   const appearance = scoreDialogAppearance(dialog);
-  const triggerAppearance = scoreTriggerAppearance(trigger);
   const workbench = document.querySelector(".score-workbench");
   if (workbench) workbench.open = false;
 
   studio.classList.add("is-closing", "is-transitioning");
   piano.classList.add("is-score-transitioning");
   trigger.classList.add("is-launching");
-  scoreParkStudioLayout(studio, sourceRect, appearance);
   studio.hidden = true;
   shell?.classList.remove("score-is-open", "score-proof-is-open");
   trigger.setAttribute("aria-expanded", "false");
@@ -17076,20 +17159,18 @@ function scoreCloseStudio() {
     return;
   }
 
-  const visual = scoreCreateTransitionVisual(
-    dialog, sourceRect, trigger, triggerRect, snapshot, appearance, triggerAppearance,
-  );
+  const visual = scoreCreateTransitionVisual(dialog, sourceRect, trigger, triggerRect, snapshot, appearance);
   const scaleX = Math.max(0.01, triggerRect.width / sourceRect.width);
   const scaleY = Math.max(0.01, triggerRect.height / sourceRect.height);
   const deltaX = triggerRect.left - sourceRect.left;
   const deltaY = triggerRect.top - sourceRect.top;
   const sourceRadius = appearance.radius;
-  const triggerRadius = triggerAppearance.radius;
+  const triggerRadius = scoreCornerRadius(trigger);
   const undershoot = 0.965;
   const undershootX = deltaX + (triggerRect.width * (1 - undershoot)) / 2;
   const undershootY = deltaY + (triggerRect.height * (1 - undershoot)) / 2;
   const duration = 520;
-  const triggerShadow = triggerAppearance.boxShadow;
+  const triggerShadow = getComputedStyle(trigger).boxShadow;
 
   const sharedAnimation = scoreAnimateElement(visual.shell, [
     {
@@ -17163,7 +17244,7 @@ function scoreCloseStudio() {
     animations: [sharedAnimation, snapshotAnimation, triggerAnimation, pianoAnimation],
     onFinish: () => {
       try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
-      scoreScheduleUiPersist(120);
+      scorePersistUiState();
     },
   };
   SCORE_STATE.studioAnimation = transition;
@@ -17392,30 +17473,6 @@ initScoreStudio();
   // before touching any optional controls; perform one clean source reload if
   // it is absent, then leave a useful recovery surface instead of white pixels.
   const PIANO_COLD_START_RETRY_KEY = "keyboard-piano-cold-start-retry-v1";
-  let coldStartReloading = false;
-  const forceColdStartReload = (event) => {
-    if (coldStartReloading) return;
-    coldStartReloading = true;
-    window.setTimeout(() => { coldStartReloading = false; }, 2500);
-    if (event?.cancelable) event.preventDefault();
-    event?.stopPropagation?.();
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("piano-recover", Date.now().toString(36));
-      url.hash = "";
-      window.location.replace(url.href);
-    } catch {
-      window.location.reload();
-    }
-  };
-  const bindColdStartReload = (scope) => {
-    const button = scope?.querySelector?.("[data-piano-reload]");
-    if (!button || button.dataset.pianoReloadBound === "1") return;
-    button.dataset.pianoReloadBound = "1";
-    button.addEventListener("pointerup", forceColdStartReload, { capture: true });
-    button.addEventListener("touchend", forceColdStartReload, { capture: true, passive: false });
-    button.addEventListener("click", forceColdStartReload, { capture: true });
-  };
   const ensureColdStartFallback = () => {
     let app = document.getElementById("app");
     if (!app) {
@@ -17424,9 +17481,8 @@ initScoreStudio();
       document.body?.prepend(app);
     }
     if (app && !app.firstElementChild) {
-      app.innerHTML = '<main class="app-shell piano-cold-start" style="justify-content:center"><section role="status" style="display:grid;max-width:360px;gap:10px;justify-items:center;padding:28px 30px;border-radius:28px;background:rgba(255,255,255,.76);text-align:center"><strong data-piano-boot-title>正在恢复键盘钢琴</strong><small data-piano-boot-detail>正在重新载入本地界面…</small><button type="button" data-piano-reload style="touch-action:manipulation;pointer-events:auto">重新加载</button></section></main>';
+      app.innerHTML = '<main class="app-shell piano-cold-start" style="justify-content:center"><section role="status" style="display:grid;max-width:360px;gap:10px;justify-items:center;padding:28px 30px;border-radius:28px;background:rgba(255,255,255,.76);text-align:center"><strong data-piano-boot-title>正在恢复键盘钢琴</strong><small data-piano-boot-detail>正在重新载入本地界面…</small><button type="button" onclick="location.reload()">重新加载</button></section></main>';
     }
-    bindColdStartReload(app);
     return app;
   };
   const verifyColdStartSurface = () => {
@@ -17441,7 +17497,7 @@ initScoreStudio();
       if (!alreadyRetried) sessionStorage.setItem(PIANO_COLD_START_RETRY_KEY, "1");
     } catch {}
     if (!alreadyRetried) {
-      window.setTimeout(forceColdStartReload, 0);
+      window.setTimeout(() => window.location.reload(), 0);
       return false;
     }
     const title = app?.querySelector("[data-piano-boot-title]");
@@ -17674,88 +17730,12 @@ initScoreStudio();
     return result;
   };
 
-  const portraitScoreQuery = window.matchMedia("(max-width: 760px) and (orientation: portrait)");
-  let scoreStageGeometryFrame = 0;
-
-  function setScoreSurfaceOpen(open) {
-    const root = document.documentElement;
-    const shell = document.querySelector(".app-shell");
-    const dark = Boolean(
-      shell?.classList.contains("theme-dark")
-      || shell?.classList.contains("piano-dark-page")
-      || root.classList.contains("piano-dark-page")
-      || root.dataset.pianoTheme === "dark"
-    );
-    root.classList.toggle("score-surface-open", open);
-    root.classList.toggle("score-surface-dark", open && dark);
-    const pageColor = dark ? "#080a0f" : (open ? "#ffffff" : "#e8edf2");
-    root.style.backgroundColor = pageColor;
-    if (document.body) document.body.style.backgroundColor = pageColor;
-    const themeColor = document.querySelector('meta[name="theme-color"]');
-    if (!themeColor) return;
-    themeColor.content = pageColor;
-  }
-
-  function updatePortraitScoreStage() {
-    if (scoreStageGeometryFrame) cancelAnimationFrame(scoreStageGeometryFrame);
-    scoreStageGeometryFrame = requestAnimationFrame(() => {
-      scoreStageGeometryFrame = 0;
-      const studio = document.getElementById("score-studio");
-      const shell = document.querySelector(".app-shell");
-      const piano = document.querySelector(".piano-console");
-      if (!studio || !shell?.classList.contains("score-is-open") || !portraitScoreQuery.matches) {
-        studio?.style.removeProperty("--score-stage-top");
-        studio?.style.removeProperty("--score-stage-height");
-        return;
-      }
-
-      const pianoTop = piano?.getBoundingClientRect().top ?? innerHeight * 0.58;
-      const viewportHeight = window.visualViewport?.height || innerHeight;
-      const top = 4;
-      const gap = 6;
-      const available = Math.floor(Math.min(pianoTop - gap, viewportHeight - gap) - top);
-      studio.style.setProperty("--score-stage-top", `${top}px`);
-      studio.style.setProperty("--score-stage-height", `${Math.max(260, available)}px`);
-    });
-  }
-
-  const refreshOpenScoreGeometry = () => {
-    const shell = document.querySelector(".app-shell");
-    if (shell?.classList.contains("score-is-open")) updatePortraitScoreStage();
-  };
-  window.addEventListener("resize", refreshOpenScoreGeometry, { passive: true });
-  window.addEventListener("orientationchange", refreshOpenScoreGeometry, { passive: true });
-  window.visualViewport?.addEventListener("resize", refreshOpenScoreGeometry, { passive: true });
-  window.visualViewport?.addEventListener("scroll", refreshOpenScoreGeometry, { passive: true });
-
-  // iOS-style shared-element launch. Only a fixed visual proxy is transformed;
-  // the real piano and score layout never move, so the spring-like morph stays
-  // smooth without reintroducing the former keyboard jump.
-  function createIosScoreTransitionVisual(
-    dialog,
-    rect,
-    trigger,
-    triggerRect,
-    snapshot = null,
-    appearance = null,
-    triggerAppearance = null,
-  ) {
-    const visual = scoreCreateTransitionVisual(
-      dialog, rect, trigger, triggerRect, snapshot, appearance, triggerAppearance,
-    );
-    const dark = Boolean(
-      document.querySelector(".app-shell")?.classList.contains("theme-dark")
-      || document.documentElement.classList.contains("score-surface-dark")
-    );
-    visual.layer.classList.toggle("theme-dark", dark);
-    visual.layer.classList.toggle("piano-dark-page", dark);
-    visual.layer.classList.toggle("piano-light-page", !dark);
-    visual.layer.classList.toggle("score-surface-dark", dark);
-    visual.layer.classList.toggle("score-transition-light", !dark);
-    return visual;
-  }
-
-  scoreOpenStudio = function iosScoreOpenStudio() {
+  // Keep the piano on its resting anchor while the score opens. The former
+  // shared-element animation cloned the complete score DOM and animated the
+  // piano's geometry; on iOS that caused both a vertical jump and dropped
+  // frames. The real dialog now uses only compositor-friendly opacity and
+  // transform keyframes, with no page scrolling or piano animation.
+  scoreOpenStudio = function stableScoreOpenStudio() {
     const studio = document.getElementById("score-studio");
     const trigger = document.getElementById("score-open");
     const shell = document.querySelector(".app-shell");
@@ -17763,128 +17743,43 @@ initScoreStudio();
     if (!studio || !trigger || !dialog || !studio.hidden) return;
     if (SCORE_STATE.studioAnimation) return;
 
-    const triggerRect = scoreRectSnapshot(trigger);
-    const triggerAppearance = scoreTriggerAppearance(trigger);
-    const parkedRect = scoreCachedParkedStudioRect();
-    const parkedAppearance = parkedRect ? scoreCachedParkedDialogAppearance() : null;
     scoreResetStudioAnimationStyles(studio, trigger);
-    studio.classList.add("is-opening", "is-transitioning");
-    trigger.classList.add("is-launching");
-    shell?.classList.add("score-is-open");
+    studio.classList.add("is-opening");
     studio.hidden = false;
-    scoreUnparkStudioLayout(studio);
-    // Prepare the final page surface underneath the proxy before it grows.
-    // With no full-screen veil, the keyboard stays composited and visible for
-    // the entire hand-off instead of disappearing for the final frame.
-    setScoreSurfaceOpen(true);
-    updatePortraitScoreStage();
+    shell?.classList.add("score-is-open");
     trigger.setAttribute("aria-expanded", "true");
     trigger.setAttribute("aria-label", "收起识谱界面");
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const duration = reducedMotion ? 1 : 260;
+    const dialogAnimation = scoreAnimateElement(dialog, [
+      {
+        opacity: 0,
+        transform: "translate3d(0, 12px, 0) scale(0.992)",
+        offset: 0,
+      },
+      {
+        opacity: 1,
+        transform: "translate3d(0, 0, 0) scale(1)",
+        offset: 1,
+      },
+    ], { duration, easing: "cubic-bezier(0.2, 0.78, 0.2, 1)", fill: "both" });
+
     const transition = {
       direction: "opening",
       studio,
       trigger,
       layer: null,
-      animations: [],
-      onFinish: () => scoreScheduleUiPersist(120),
+      animations: [dialogAnimation],
+      onFinish: scorePersistUiState,
     };
     SCORE_STATE.studioAnimation = transition;
-
-    window.requestAnimationFrame(() => {
-      if (SCORE_STATE.studioAnimation !== transition) return;
-      // The mobile studio already has an explicit fixed rectangle. Measuring
-      // the dialog makes flex/grid resolve every score glyph before returning
-      // the same bounds, which is especially costly during playback.
-      const targetRect = parkedRect || scoreRectSnapshot(studio);
-      if (!triggerRect || !targetRect) {
-        setScoreSurfaceOpen(true);
-        SCORE_STATE.studioAnimation = null;
-        scoreResetStudioAnimationStyles(studio, trigger);
-        scorePersistUiState();
-        scoreFlushDeferredVisualHighlight();
-        return;
-      }
-
-      const appearance = parkedAppearance || scoreDialogAppearance(dialog);
-      const visual = createIosScoreTransitionVisual(
-        dialog, targetRect, trigger, triggerRect, null, appearance, triggerAppearance,
-      );
-      transition.layer = visual.layer;
-      const scaleX = Math.max(0.01, triggerRect.width / targetRect.width);
-      const scaleY = Math.max(0.01, triggerRect.height / targetRect.height);
-      const deltaX = triggerRect.left - targetRect.left;
-      const deltaY = triggerRect.top - targetRect.top;
-      const centeredTransform = (x, y) => {
-        const left = deltaX + (triggerRect.width - targetRect.width * x) / 2;
-        const top = deltaY + (triggerRect.height - targetRect.height * y) / 2;
-        return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
-      };
-      const targetRadius = visual.appearance.radius;
-      const triggerRadius = triggerAppearance.radius;
-      const overshoot = 1.012;
-      const overshootX = -(targetRect.width * (overshoot - 1)) / 2;
-      const overshootY = -(targetRect.height * (overshoot - 1)) / 2;
-      const duration = reducedMotion ? 1 : 540;
-      const targetShadow = visual.appearance.boxShadow;
-      const triggerShadow = triggerAppearance.boxShadow;
-
-      const sharedAnimation = scoreAnimateElement(visual.shell, [
-        {
-          transform: centeredTransform(scaleX, scaleY),
-          borderRadius: scoreScaledRadius(triggerRadius, scaleX, scaleY),
-          boxShadow: triggerShadow,
-          offset: 0,
-          easing: "cubic-bezier(0.16, 0.82, 0.2, 1)",
-        },
-        {
-          transform: centeredTransform(scaleX * 0.94, scaleY * 0.9),
-          borderRadius: scoreScaledRadius(triggerRadius, scaleX * 0.94, scaleY * 0.9),
-          boxShadow: triggerShadow,
-          offset: 0.1,
-          easing: "cubic-bezier(0.32, 0.72, 0.25, 1)",
-        },
-        {
-          transform: `translate3d(${overshootX}px, ${overshootY}px, 0) scale(${overshoot})`,
-          borderRadius: `${Math.max(0, targetRadius * 0.93)}px`,
-          boxShadow: targetShadow,
-          offset: 0.86,
-          easing: "cubic-bezier(0.2, 0.86, 0.2, 1)",
-        },
-        {
-          transform: "translate3d(0, 0, 0) scale(1)",
-          borderRadius: `${targetRadius}px`,
-          boxShadow: targetShadow,
-          offset: 1,
-        },
-      ], { duration, easing: "linear", fill: "both" });
-
-      const snapshotAnimation = scoreAnimateElement(visual.dialogSnapshot, [
-        { opacity: 0, offset: 0 },
-        { opacity: 0.04, offset: 0.16 },
-        { opacity: 0.7, offset: 0.48 },
-        { opacity: 1, offset: 0.72 },
-        { opacity: 1, offset: 1 },
-      ], { duration, easing: "linear", fill: "both" });
-
-      const triggerAnimation = scoreAnimateElement(visual.triggerGhost, [
-        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", offset: 0 },
-        { opacity: 0.96, transform: "translate3d(0, 0, 0) scale(0.94)", offset: 0.1 },
-        { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0.27 },
-        { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 1 },
-      ], { duration, easing: "linear", fill: "both" });
-
-      transition.animations = [sharedAnimation, snapshotAnimation, triggerAnimation];
-      const settle = () => {
-        scoreFinishStudioAnimation(transition);
-      };
-      sharedAnimation.onfinish = settle;
-      sharedAnimation.oncancel = settle;
-    });
+    const settle = () => scoreFinishStudioAnimation(transition);
+    dialogAnimation.onfinish = settle;
+    dialogAnimation.oncancel = settle;
   };
 
-  scoreCloseStudio = function iosScoreCloseStudio() {
+  scoreCloseStudio = function stableScoreCloseStudio() {
     const studio = document.getElementById("score-studio");
     const trigger = document.getElementById("score-open");
     const shell = document.querySelector(".app-shell");
@@ -17895,124 +17790,42 @@ initScoreStudio();
 
     const workbench = document.querySelector(".score-workbench");
     if (workbench) workbench.open = false;
-    const sourceRect = scoreRectSnapshot(studio);
-    const triggerRect = scoreRectSnapshot(trigger);
-    const snapshot = scoreCloneDialogSnapshot(dialog);
-    const appearance = scoreDialogAppearance(dialog);
-    const triggerAppearance = scoreTriggerAppearance(trigger);
-    studio.classList.add("is-closing", "is-transitioning");
-    trigger.classList.add("is-launching");
+    studio.classList.add("is-closing");
     trigger.setAttribute("aria-expanded", "false");
     trigger.setAttribute("aria-label", "开启识谱界面");
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (!sourceRect || !triggerRect) {
-      studio.hidden = true;
-      shell?.classList.remove("score-is-open", "score-proof-is-open");
-      setScoreSurfaceOpen(false);
-      studio.style.removeProperty("--score-stage-top");
-      studio.style.removeProperty("--score-stage-height");
-      scoreResetStudioAnimationStyles(studio, trigger);
-      try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
-      scorePersistUiState();
-      return;
-    }
-
-    const visual = createIosScoreTransitionVisual(
-      dialog,
-      sourceRect,
-      trigger,
-      triggerRect,
-      snapshot,
-      appearance,
-      triggerAppearance,
-    );
-    const scaleX = Math.max(0.01, triggerRect.width / sourceRect.width);
-    const scaleY = Math.max(0.01, triggerRect.height / sourceRect.height);
-    const deltaX = triggerRect.left - sourceRect.left;
-    const deltaY = triggerRect.top - sourceRect.top;
-    const centeredTransform = (x, y) => {
-      const left = deltaX + (triggerRect.width - sourceRect.width * x) / 2;
-      const top = deltaY + (triggerRect.height - sourceRect.height * y) / 2;
-      return `translate3d(${left}px, ${top}px, 0) scale(${x}, ${y})`;
-    };
-    const sourceRadius = appearance.radius;
-    const triggerRadius = triggerAppearance.radius;
-    const openingBreathe = 1.006;
-    const breatheX = -(sourceRect.width * (openingBreathe - 1)) / 2;
-    const breatheY = -(sourceRect.height * (openingBreathe - 1)) / 2;
-    const duration = reducedMotion ? 1 : 480;
-    const triggerShadow = triggerAppearance.boxShadow;
-
-    // Restore the page underneath the fixed proxy while keeping the keyboard
-    // continuously visible; no full-screen veil is used during the morph.
-    setScoreSurfaceOpen(false);
-
-    const sharedAnimation = scoreAnimateElement(visual.shell, [
+    const duration = reducedMotion ? 1 : 220;
+    const dialogAnimation = scoreAnimateElement(dialog, [
       {
+        opacity: 1,
         transform: "translate3d(0, 0, 0) scale(1)",
-        borderRadius: `${sourceRadius}px`,
-        boxShadow: appearance.boxShadow,
         offset: 0,
-        easing: "cubic-bezier(0.3, 0, 0.2, 1)",
       },
       {
-        transform: `translate3d(${breatheX}px, ${breatheY}px, 0) scale(${openingBreathe})`,
-        borderRadius: `${Math.max(0, sourceRadius * 0.95)}px`,
-        boxShadow: appearance.boxShadow,
-        offset: 0.12,
-        easing: "cubic-bezier(0.3, 0, 0.2, 1)",
-      },
-      {
-        transform: centeredTransform(scaleX * 0.94, scaleY * 0.9),
-        borderRadius: scoreScaledRadius(triggerRadius, scaleX * 0.94, scaleY * 0.9),
-        boxShadow: triggerShadow,
-        offset: 0.88,
-        easing: "cubic-bezier(0.22, 0.72, 0.2, 1)",
-      },
-      {
-        transform: centeredTransform(scaleX, scaleY),
-        borderRadius: scoreScaledRadius(triggerRadius, scaleX, scaleY),
-        boxShadow: triggerShadow,
+        opacity: 0,
+        transform: "translate3d(0, 10px, 0) scale(0.994)",
         offset: 1,
       },
-    ], { duration, easing: "linear", fill: "both" });
-
-    const snapshotAnimation = scoreAnimateElement(visual.dialogSnapshot, [
-      { opacity: 1, offset: 0 },
-      { opacity: 1, offset: 0.28 },
-      { opacity: 0.72, offset: 0.54 },
-      { opacity: 0.08, offset: 0.88 },
-      { opacity: 0, offset: 1 },
-    ], { duration, easing: "linear", fill: "both" });
-
-    const triggerAnimation = scoreAnimateElement(visual.triggerGhost, [
-      { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0 },
-      { opacity: 0, transform: "translate3d(0, 0, 0) scale(0.78)", offset: 0.7 },
-      { opacity: 0.55, transform: "translate3d(0, 0, 0) scale(0.9)", offset: 0.9 },
-      { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", offset: 1 },
-    ], { duration, easing: "linear", fill: "both" });
+    ], { duration, easing: "cubic-bezier(0.32, 0, 0.68, 1)", fill: "both" });
 
     const transition = {
       direction: "closing",
       studio,
       trigger,
-      layer: visual.layer,
-      animations: [sharedAnimation, snapshotAnimation, triggerAnimation],
+      layer: null,
+      animations: [dialogAnimation],
       onFinish: () => {
-        scoreParkStudioLayout(studio, sourceRect, appearance);
         studio.hidden = true;
         shell?.classList.remove("score-is-open", "score-proof-is-open");
-        studio.style.removeProperty("--score-stage-top");
-        studio.style.removeProperty("--score-stage-height");
         try { trigger.focus({ preventScroll: true }); } catch { trigger.focus(); }
-        scoreScheduleUiPersist(120);
+        scorePersistUiState();
       },
     };
     SCORE_STATE.studioAnimation = transition;
     const settle = () => scoreFinishStudioAnimation(transition);
-    sharedAnimation.onfinish = settle;
-    sharedAnimation.oncancel = settle;
+    dialogAnimation.onfinish = settle;
+    dialogAnimation.oncancel = settle;
   };
 
   // initScoreStudio bound the close button before this optimization script
@@ -18029,648 +17842,6 @@ initScoreStudio();
   document.addEventListener("click", captureStableScoreClose, true);
 })();
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <script id="piano-web-runtime">
 (() => {
