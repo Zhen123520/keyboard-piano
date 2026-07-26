@@ -1,6 +1,16 @@
-const SHELL_CACHE = "keyboard-piano-shell-v9";
+const SHELL_CACHE = "keyboard-piano-shell-v10";
 const AUDIO_CACHE = "keyboard-piano-audio-salamander-v3-48k-mp3-320-web-v2";
-const SHELL_FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const SHELL_FILES = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon.svg",
+  "./apple-touch-icon.png",
+  "./apple-touch-icon-180.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./favicon-32x32.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_FILES)));
