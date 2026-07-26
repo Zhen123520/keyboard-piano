@@ -1,8 +1,9 @@
-const SHELL_CACHE = "keyboard-piano-shell-v12";
+const SHELL_CACHE = "keyboard-piano-shell-v13";
 const AUDIO_CACHE = "keyboard-piano-audio-salamander-v3-48k-mp3-320-web-v2";
 const SHELL_FILES = [
   "./",
   "./index.html",
+  "./image-score-pdf.js?v=13",
   "./manifest.webmanifest",
   "./icon.svg",
   "./apple-touch-icon.png",
